@@ -1,6 +1,11 @@
 "use client";
 
-import { Button, ModalHeader, cbModal } from "@contentstack/venus-components";
+import {
+  Button,
+  ModalFooter,
+  ModalHeader,
+  cbModal,
+} from "@contentstack/venus-components";
 
 import { CsModalProps } from "@/app/components/sidebar/models/models";
 import { MarketplaceAppProvider } from "@/app/common/providers/MarketplaceAppProvider";
@@ -14,7 +19,7 @@ const Configuration = ({}: ConfigurationProps) => {
       <Button
         isFullWidth
         buttonType="secondary"
-        icon={"Filter"}
+        icon={"Publish"}
         onClick={() => {
           cbModal({
             component: (props: any) => <ConfigurationModal {...props} />,
@@ -24,7 +29,7 @@ const Configuration = ({}: ConfigurationProps) => {
           });
         }}
       >
-        Select
+        Group Publishing
       </Button>
     </div>
   );
@@ -41,7 +46,7 @@ export const ConfigurationModal = ({ closeModal }: ConfigurationModalProps) => {
           closeModal={closeModal}
         />
         <div className="h-[40vh] p-4 overflow-y-scroll">
-          <Selections />
+          <Selections closeModal={closeModal} />
         </div>
       </div>
     </MarketplaceAppProvider>

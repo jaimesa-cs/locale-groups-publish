@@ -2,17 +2,16 @@
 
 import ContentstackAppSDK from "@contentstack/app-sdk";
 import React from "react";
-import Store from "@contentstack/app-sdk/dist/src/store";
-import UiLocation from "@contentstack/app-sdk/dist/src/uiLocation";
-import { has } from "lodash";
 
 interface UseAppStorageResult<T> {
   value: T | undefined;
   set: (value: Partial<T>) => Promise<void>;
+  isSettingValue: boolean;
 }
 
 const useAppStorage = <T>(key: string): UseAppStorageResult<T> => {
   const [value, setValue] = React.useState<T>({} as T);
+  const [isSettingValue, setIsSettingValue] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     ContentstackAppSDK.init().then((appSdk) => {
@@ -30,13 +29,16 @@ const useAppStorage = <T>(key: string): UseAppStorageResult<T> => {
 
   return {
     value,
+    isSettingValue,
     set: async (v: Partial<T>) => {
+      setIsSettingValue(true);
       ContentstackAppSDK.init().then((appSdk) => {
         appSdk.store.set(key, v).then(() => {
           if (process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true") {
             console.log("Value stored successfully: ", key, v);
           }
           setValue((prev) => {
+            setIsSettingValue(false);
             return {
               ...prev,
               ...v,

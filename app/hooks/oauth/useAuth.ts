@@ -4,7 +4,6 @@ import { KeyValueObj } from "../../types";
 import { TOKEN_STORAGE_KEY } from "@/app/components/sidebar/models/models";
 import { has } from "lodash";
 import useAppStorage from "../useAppStorage";
-import useLocalStorage from "../local-storage/useLocalStorage";
 
 export const AUTH_KEY = "csat";
 
@@ -29,14 +28,18 @@ const canRefresh = (auth?: KeyValueObj) => {
 };
 
 const useAuth = () => {
-  const { value: auth, set: setAuth } =
-    useAppStorage<KeyValueObj>(TOKEN_STORAGE_KEY);
+  const {
+    value: auth,
+    set: setAuth,
+    isSettingValue,
+  } = useAppStorage<KeyValueObj>(TOKEN_STORAGE_KEY);
 
   const result = {
     auth: (auth as KeyValueObj) || null,
     setAuth,
     isValid: isValid(auth),
-    canRefresh: canRefresh(auth),
+    canRefresh: !isSettingValue && canRefresh(auth),
+    isSettingValue,
   };
 
   return result;

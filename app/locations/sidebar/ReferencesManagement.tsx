@@ -80,51 +80,6 @@ const ReferencesManagement = () => {
                 </div>
               </Accordion>
             )}
-            <Accordion title="Releases" renderExpanded noChevron>
-              <div className="pl-2">
-                <div className="">
-                  <Actions branch={branch?.uid} loading />
-                </div>
-                <div className="pt-2">
-                  {/* {!locales?.some((l) => l.checked) && (
-                    <Info
-                      content={
-                        <>
-                          {!locales?.some((l) => l.checked) && (
-                            <div>No Languages have been selected.</div>
-                          )}
-                        </>
-                      }
-                      icon={<Icon icon="InfoCircleWhite" />}
-                      type="attention"
-                    />
-                  )} */}
-                </div>
-              </div>
-            </Accordion>
-
-            <Accordion title="Security">
-              <div className="grid grid-cols-2 pl-2 gap-2">
-                <div>
-                  <Button
-                    buttonType="secondary"
-                    isFullWidth
-                    disabled={isRefreshingToken}
-                    onClick={() => {
-                      setProgressTitle("Refreshing Token...");
-                      setShowProgressBar(false);
-                      asyncRefresh(true);
-                    }}
-                    icon="RefreshCircleThin"
-                  >
-                    Token
-                  </Button>
-                </div>
-                <div>
-                  <AuthorizeButton />
-                </div>
-              </div>
-            </Accordion>
           </div>
         )}
       </ExtensionProvider>

@@ -7,12 +7,13 @@ import axios from "../../utils/axios";
 import useAuth from "./useAuth";
 
 export default function useRefresh() {
-  const { auth, setAuth, isValid, canRefresh } = useAuth();
+  const { auth, setAuth, isValid, canRefresh, isSettingValue } = useAuth();
   const [isRefreshingToken, setIsRefreshingToken] = React.useState(false);
+  const [isError, setIsError] = React.useState<boolean>(false);
 
   const asyncRefresh = React.useCallback(
     (force?: boolean) => {
-      if (canRefresh || force) {
+      if ((!isSettingValue && canRefresh) || force) {
         setIsRefreshingToken(true);
         const region = sessionStorage.getItem("region") || "NA";
         const key = `code_verifier_${region}`;
@@ -26,8 +27,8 @@ export default function useRefresh() {
             console.log("asyncRefresh", response.data);
             if (response.data.statusCode && response.data.statusCode !== 200) {
               setAuth({} as KeyValueObj).then(() => {
-                setIsRefreshingToken(false);
-              });
+                setIsError(false);
+              }).catch;
             } else {
               setAuth(response.data).then(() => {
                 setIsRefreshingToken(false);
@@ -36,10 +37,10 @@ export default function useRefresh() {
           })
           .catch((err) => {
             console.log("asyncRefreshErr", err);
-            setAuth({} as KeyValueObj).then(() => {
-              setIsRefreshingToken(false);
-            });
-          });
+            setIsRefreshingToken(false);
+            setAuth({} as KeyValueObj).then(() => {});
+          })
+          .finally(() => {});
       } else {
         setIsRefreshingToken(false);
       }

@@ -99,15 +99,10 @@ interface SdkResult {
  * @returns
  */
 export const useCsOAuthApi = (): SdkResult => {
-  const { strategy: axios, isStrategyReady } = useContentstackAxios();
-  const [isReady, setIsReady] = React.useState(isStrategyReady);
-
-  React.useEffect(() => {
-    setIsReady(isStrategyReady);
-  }, [isStrategyReady]);
+  const { strategy: axios } = useContentstackAxios();
 
   return {
-    isReady,
+    isReady: true,
     axios: (query: string, options?: AxiosRequestConfig): AxiosPromise => {
       return axios.executeRequest(`${query}`, options);
     },
