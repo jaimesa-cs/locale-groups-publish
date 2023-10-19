@@ -5,13 +5,14 @@ import React from "react";
 
 interface UseAppStorageResult<T> {
   value: T | undefined;
-  set: (value: Partial<T>) => Promise<void>;
-  isSettingValue: boolean;
+  store: (value: Partial<T>) => Promise<void>;
+  storeInProgress: boolean;
+  setValue: React.Dispatch<React.SetStateAction<T>>;
 }
 
 const useAppStorage = <T>(key: string): UseAppStorageResult<T> => {
   const [value, setValue] = React.useState<T>({} as T);
-  const [isSettingValue, setIsSettingValue] = React.useState<boolean>(false);
+  const [storeInProgress, setStoreInProgress] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     ContentstackAppSDK.init().then((appSdk) => {
@@ -29,21 +30,23 @@ const useAppStorage = <T>(key: string): UseAppStorageResult<T> => {
 
   return {
     value,
-    isSettingValue,
-    set: async (v: Partial<T>) => {
-      setIsSettingValue(true);
+    storeInProgress,
+    setValue,
+    store: async (v: Partial<T>) => {
+      setStoreInProgress(true);
       ContentstackAppSDK.init().then((appSdk) => {
-        appSdk.store.set(key, v).then(() => {
-          if (process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true") {
-            console.log("Value stored successfully: ", key, v);
-          }
-          setValue((prev) => {
-            setIsSettingValue(false);
-            return {
-              ...prev,
-              ...v,
-            };
+        setValue((prev) => {
+          const newValue = {
+            ...prev,
+            ...v,
+          };
+          appSdk.store.set(key, newValue).then(() => {
+            if (process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true") {
+              console.log("Value stored successfully: ", key, newValue);
+            }
+            setStoreInProgress(false);
           });
+          return newValue;
         });
       });
     },

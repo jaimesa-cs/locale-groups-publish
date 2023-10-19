@@ -2,7 +2,7 @@
   "name": "Mango Publishing Configuration",
   "groups": [
     {
-      "name": "Espana + Resto",
+      "name": "Spain + Rest",
       "countries": [
         {
           "name": "Spain",
@@ -14,6 +14,66 @@
           "summerTime": {
             "hours": 0,
             "dif": "="
+          }
+        },
+        {
+          "name": "Albania",
+          "locale": "al",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 0,
+            "dif": "="
+          }
+        },
+        {
+          "name": "Algeria",
+          "locale": "dz",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Andorra",
+          "locale": "ad",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 0,
+            "dif": "="
+          }
+        },
+        {
+          "name": "Angola",
+          "locale": "ao",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Armenia",
+          "locale": "am",
+          "winterTime": {
+            "hours": 3,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 2,
+            "dif": "-"
           }
         },
         {
@@ -54,6 +114,23 @@
           },
           "summerTime": {
             "hours": 1,
+            "dif": "-"
+          }
+        }
+      ]
+    },
+    {
+      "name": "United Arab Emirates",
+      "countries": [
+        {
+          "name": "United Arab Emirates",
+          "locale": "ae",
+          "winterTime": {
+            "hours": 3,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 2,
             "dif": "-"
           }
         }

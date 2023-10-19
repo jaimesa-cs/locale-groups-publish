@@ -19,7 +19,7 @@ function Environments({}: EnvironmentsProps) {
   const [environments, setEnvironments] = React.useState<IEnvironmentConfig[]>(
     []
   );
-  const { value: selections, set: setSelections } =
+  const { value: selections, store: setSelections } =
     useAppStorage<UserSelections>(SELECTIONS_STORAGE_KEY);
 
   React.useEffect(() => {
@@ -49,11 +49,10 @@ function Environments({}: EnvironmentsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady]);
   return loading ? (
-    <DefaultLoading title="Loading environments..." />
+    <DefaultLoading />
   ) : (
     <div key="environments" className="">
       <div className="flex flex-col">
-        <Field labelText="Select Environment(s)" />
         <div key="environment_all" className="pt-2">
           <div className="grid grid-cols-3 pl-2">
             {environments &&

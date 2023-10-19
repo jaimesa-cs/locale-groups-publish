@@ -12,19 +12,18 @@ export interface GroupConfiguration {
   countries: CountryData[];
 }
 
+export interface PeriodTime {
+  hours: number;
+  dif: DifType;
+}
+
 export interface CountryData {
   name: string;
   locale: string;
   checked?: boolean;
   enabled?: boolean;
-  winterTime: {
-    hours: number;
-    dif: DifType;
-  };
-  summerTime: {
-    hours: number;
-    dif: DifType;
-  };
+  winterTime: PeriodTime;
+  summerTime: PeriodTime;
 }
 
 const configuration: Configuration = {

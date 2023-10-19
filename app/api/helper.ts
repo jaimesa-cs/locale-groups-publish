@@ -55,6 +55,9 @@ export const prepareHeaders = (headers: Headers) => {
   newHeaders["api_key"] = headers.get("cs-api-key") || "";
   newHeaders["branch"] = headers.get("branch") || "";
   newHeaders["region"] = headers.get("region") || "";
+  if (headers.get("cs-api-version")) {
+    newHeaders["api_version"] = headers.get("cs-api-version") || "";
+  }
 
   const bearer = headers.get("authorization")?.replace("Bearer ", "");
 

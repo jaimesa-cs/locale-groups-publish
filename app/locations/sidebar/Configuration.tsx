@@ -15,7 +15,7 @@ import Selections from "./Selections";
 export interface ConfigurationProps {}
 const Configuration = ({}: ConfigurationProps) => {
   return (
-    <div className="">
+    <div className="pr-4">
       <Button
         isFullWidth
         buttonType="secondary"
@@ -40,12 +40,12 @@ interface ConfigurationModalProps extends CsModalProps {}
 export const ConfigurationModal = ({ closeModal }: ConfigurationModalProps) => {
   return (
     <MarketplaceAppProvider>
-      <div className="h-[46vh]">
+      <div className="h-full">
         <ModalHeader
           title={`Publishing by Country Groups`}
           closeModal={closeModal}
         />
-        <div className="h-[40vh] p-4 overflow-y-scroll">
+        <div className="h-[70vh] w-[80vw] p-4 overflow-y-scroll">
           <Selections closeModal={closeModal} />
         </div>
       </div>

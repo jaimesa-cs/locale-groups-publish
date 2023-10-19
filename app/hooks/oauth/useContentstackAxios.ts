@@ -5,9 +5,6 @@ import { TOKEN_STORAGE_KEY } from "@/app/components/sidebar/models/models";
 import useAuth from "./useAuth";
 import { useBranch } from "../useBranch";
 import { useEffect } from "react";
-import useRefresh from "./useRefreshToken";
-
-const strategy = new DefaultAxiosStrategy();
 
 interface UseContentstackAxiosResult {
   strategy: RepeatStrategy;
@@ -15,8 +12,10 @@ interface UseContentstackAxiosResult {
 
 const useContentstackAxios = (): UseContentstackAxiosResult => {
   const { branch } = useBranch();
-  const { auth, setAuth } = useAuth();
-  const { syncRefresh } = useRefresh();
+  const { auth, setAuth, syncRefresh } = useAuth();
+  const [strategy, setStrategy] = React.useState<RepeatStrategy>(
+    new DefaultAxiosStrategy()
+  );
 
   useEffect(() => {
     if (!branch?.api_key || !branch?.uid || !auth?.access_token) return;

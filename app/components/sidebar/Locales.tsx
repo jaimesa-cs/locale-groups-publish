@@ -15,29 +15,32 @@ import {
   UserSelections,
 } from "./models/models";
 
+import DefaultLoading from "../DefaultLoading";
 import React from "react";
 import { useAppConfig } from "@/app/hooks/useAppConfig";
 import useAppStorage from "@/app/hooks/useAppStorage";
 import { useCsOAuthApi } from "./ContentstackOAuthApi";
 
-interface LocalesProps {}
+interface CountryGroupsProps {}
 
-function Locales({}: LocalesProps) {
+function CountryGroups({}: CountryGroupsProps) {
   const appConfig = useAppConfig();
-
-  const [loadingTitle, setLoadingTitle] = React.useState<string>("");
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [, setLoadingTitle] = React.useState<string>("");
   const { getLocales, isReady } = useCsOAuthApi();
   const [locales, setLocales] = React.useState<ILocaleConfig[]>([]);
   const [groups, setGroups] = React.useState<GroupConfiguration[]>([]);
 
-  const { value: selections, set: setSelections } =
+  const { value: selections, store: setSelections } =
     useAppStorage<UserSelections>(SELECTIONS_STORAGE_KEY);
 
   React.useEffect(() => {
     if (!isReady) return;
+    setLoading(true);
     getLocales()
       .then((response) => {
         setLocales(response.data.locales);
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error getting locales");
@@ -46,11 +49,13 @@ function Locales({}: LocalesProps) {
   }, [isReady]);
 
   React.useEffect(() => {
-    if (appConfig) {
+    if (selections && selections.groups) {
+      setGroups(selections.groups);
+    } else if (appConfig) {
       setGroups(appConfig.appConfiguration.groups);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appConfig]);
+  }, [appConfig, selections]);
 
   const areAllGroupsChecked = React.useCallback(() => {
     let checked = true;
@@ -69,7 +74,9 @@ function Locales({}: LocalesProps) {
 
     return checked;
   }, [groups]);
-  return (
+  return loading ? (
+    <DefaultLoading />
+  ) : (
     <div key="locales" className="">
       <div className="flex flex-col">
         <div key="locale_all" className="pt-2">
@@ -206,4 +213,4 @@ function Locales({}: LocalesProps) {
     </div>
   );
 }
-export default Locales;
+export default CountryGroups;

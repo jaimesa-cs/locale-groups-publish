@@ -7,7 +7,7 @@ import RequireOAuthToken from "@/app/components/oauth/RequireOAuthToken";
 import useAuth from "@/app/hooks/oauth/useAuth";
 
 const SidebarLocation = () => {
-  const { isValid } = useAuth();
+  const { isValid, canRefresh } = useAuth();
   return (
     <MarketplaceAppProvider>
       <RequireOAuthToken>

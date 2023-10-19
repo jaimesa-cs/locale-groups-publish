@@ -1,12 +1,21 @@
 import { AsyncLoader } from "@contentstack/venus-components";
+import { use } from "react";
 
 interface LoadingProps {
   showProgressBar?: boolean;
   progress?: number;
   title?: string;
+  useLoader?: boolean;
 }
-const DefaultLoading = ({ title, showProgressBar, progress }: LoadingProps) => {
-  return (
+const DefaultLoading = ({
+  title,
+  showProgressBar,
+  progress,
+  useLoader,
+}: LoadingProps) => {
+  return useLoader ? (
+    <></>
+  ) : (
     <div className="flex flex-col place-items-center justify-center">
       {title && (
         <div className="flex mb-1">

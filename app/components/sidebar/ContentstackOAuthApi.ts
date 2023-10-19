@@ -1,11 +1,11 @@
-import { AxiosPromise, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosPromise, AxiosRequestConfig } from "axios";
 import {
   IEntryReleaseInfo,
   IReference,
   ReferenceLocaleData,
 } from "./models/models";
 
-import React from "react";
+import { KeyValueObj } from "@/app/types";
 import { getReleaseInfo } from "@/app/utils/data-utils";
 import useContentstackAxios from "@/app/hooks/oauth/useContentstackAxios";
 
@@ -22,10 +22,16 @@ export interface IPublishInstruction {
     uid: string;
     content_type?: string;
     locale: string;
+    version?: string;
   }[];
   assets?: { uid: string }[];
   locales?: string[];
   environments?: string[];
+  rules?: {
+    approvals?: boolean;
+  };
+  scheduled_at?: string;
+  publish_with_reference?: boolean;
 }
 
 export interface Release {
@@ -90,6 +96,19 @@ interface SdkResult {
     locale: string,
     options?: AxiosRequestConfig
   ) => AxiosPromise;
+  publishEntry: (
+    entryUid: string,
+    contentTypeUid: string,
+    entryVersion: string,
+    entryLocale: string,
+    locales: string[],
+    environments: string[],
+    schedule_at: string,
+    withReferences: boolean,
+    skipWorkflow: boolean,
+    approvals: boolean,
+    options?: AxiosRequestConfig
+  ) => AxiosPromise;
   isReady: boolean;
 }
 
@@ -102,7 +121,7 @@ export const useCsOAuthApi = (): SdkResult => {
   const { strategy: axios } = useContentstackAxios();
 
   return {
-    isReady: true,
+    isReady: axios.isReady(),
     axios: (query: string, options?: AxiosRequestConfig): AxiosPromise => {
       return axios.executeRequest(`${query}`, options);
     },
@@ -288,6 +307,53 @@ export const useCsOAuthApi = (): SdkResult => {
           headers: {
             ...options?.headers,
           },
+        }
+      );
+    },
+    publishEntry: async (
+      entryUid: string,
+      contentTypeUid: string,
+      entryVersion: string,
+      entryLocale: string,
+      locales: string[],
+      environments: string[],
+      schedule_at: string,
+      withReferences: boolean,
+      skipWorkflow: boolean,
+      approvals: boolean,
+      options?: AxiosRequestConfig
+    ) => {
+      const headers: KeyValueObj = {
+        ...options?.headers,
+      };
+      if (withReferences) {
+        headers["cs-api-version"] = "3.2";
+      }
+      const data: IPublishInstruction = {
+        entries: [
+          {
+            uid: entryUid,
+            content_type: contentTypeUid,
+            version: entryVersion,
+            locale: entryLocale,
+          },
+        ],
+        locales: locales,
+        environments: environments,
+        rules: {
+          approvals: approvals,
+        },
+        scheduled_at: schedule_at,
+        publish_with_reference: withReferences,
+      };
+      console.log("publishEntry", data);
+      return axios.executeRequest(
+        `/v3/bulk/publish?skip_workflow_stage_check=${skipWorkflow}&approvals={${approvals}}`,
+        {
+          ...options,
+          method: "POST",
+          headers,
+          data,
         }
       );
     },
