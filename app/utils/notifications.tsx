@@ -57,9 +57,6 @@ function showNotificationErrorDetails(
   error: KeyValueObj,
   type?: string
 ) {
-  console.log("error", error);
-  console.log("errorMessage", errorMessage);
-
   const notificationProps: any = {
     displayContent: {
       error: {

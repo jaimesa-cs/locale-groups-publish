@@ -20,7 +20,7 @@ export const useEntry = ({
   onChange?: OnChange;
   onSave?: OnSave;
 }) => {
-  const [loadingEntry, setLoadingEntry] = useState<boolean>(false);
+  const [loadingEntry, setLoadingEntry] = useState<boolean>(true);
   const { location, locationName } = useAppLocation();
   const [entryData, setEntry] = useState<{ [key: string]: any }>({});
   const [contentTypeUid, setContentTypeUid] = useState<string | undefined>(

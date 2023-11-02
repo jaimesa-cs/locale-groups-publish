@@ -1,16 +1,12 @@
 "use client";
 
-import { Checkbox, Field, ToggleSwitch } from "@contentstack/venus-components";
-import {
-  IEnvironmentConfig,
-  SELECTIONS_STORAGE_KEY,
-  UserSelections,
-} from "./models/models";
+import { Checkbox, ToggleSwitch } from "@contentstack/venus-components";
 
 import DefaultLoading from "../DefaultLoading";
+import { IEnvironmentConfig } from "./models/models";
 import React from "react";
-import useAppStorage from "@/app/hooks/useAppStorage";
 import { useCsOAuthApi } from "./ContentstackOAuthApi";
+import useUserSelections from "@/app/hooks/useUserSelections";
 
 interface EnvironmentsProps {}
 function Environments({}: EnvironmentsProps) {
@@ -19,35 +15,36 @@ function Environments({}: EnvironmentsProps) {
   const [environments, setEnvironments] = React.useState<IEnvironmentConfig[]>(
     []
   );
-  const { value: selections, store: setSelections } =
-    useAppStorage<UserSelections>(SELECTIONS_STORAGE_KEY);
+  const {
+    environments: selections,
+    setSelections,
+    loaded,
+  } = useUserSelections();
 
   React.useEffect(() => {
-    if (!isReady) return;
-    setLoading(true);
-    getEnvironments()
-      .then((response) => {
-        const configuredEnvironments = response.data.environments.map(
-          (env: IEnvironmentConfig) => {
-            return {
-              ...env,
-              checked:
-                selections?.environments?.find(
-                  (e: IEnvironmentConfig) => e.name === env.name && e.checked
-                ) || false,
-            };
-          }
-        );
-        setEnvironments(configuredEnvironments);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error getting environments");
-        setLoading(false);
-      });
+    console.log("Environments: ", { isReady, loaded });
+    if (!isReady || !loaded) return;
 
+    if (selections && selections.length > 0) {
+      console.log(
+        "Setting Environments from Selections",
+        selections.map((s) => `${s.name} :: ${s.checked || false}`)
+      );
+      setEnvironments(selections);
+    } else if (environments.length === 0) {
+      setLoading(true);
+      getEnvironments()
+        .then((response) => {
+          setEnvironments(response.data.environments);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error getting environments");
+        });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady]);
+  }, [isReady, selections]);
+
   return loading ? (
     <DefaultLoading />
   ) : (
@@ -63,12 +60,16 @@ function Environments({}: EnvironmentsProps) {
                     <Checkbox
                       onClick={() => {
                         setEnvironments((prevEnv) => {
+                          const checked = prevEnv[index].checked || false;
                           const newEnvironments = [...prevEnv];
-                          newEnvironments[index].checked =
-                            !newEnvironments[index].checked;
-                          setSelections({
-                            environments: newEnvironments,
-                          });
+                          newEnvironments[index].checked = !checked;
+                          setSelections({ environments: newEnvironments })
+                            .then(() => {
+                              setLoading(false);
+                            })
+                            .catch((error) => {
+                              console.error("Error setting environments");
+                            });
                           return newEnvironments;
                         });
                       }}
@@ -87,11 +88,19 @@ function Environments({}: EnvironmentsProps) {
           <div className="pl-2 pb-2">
             <ToggleSwitch
               onClick={() => {
-                const checked = environments?.every((l: any) => l.checked);
+                const checked = environments?.every(
+                  (l: any) => l.checked || false
+                );
                 setEnvironments((prevEnv) => {
                   const newEnvironments = [...prevEnv];
                   newEnvironments.forEach((e) => (e.checked = !checked));
-                  setSelections({ environments: newEnvironments });
+                  setSelections({ environments: newEnvironments })
+                    .then(() => {
+                      setLoading(false);
+                    })
+                    .catch((error) => {
+                      console.error("Error setting environments");
+                    });
                   return newEnvironments;
                 });
               }}

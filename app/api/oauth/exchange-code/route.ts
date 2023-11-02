@@ -1,9 +1,9 @@
-import EncryptionService, { encryptPayload } from "@/app/api/oauth/encryption";
+import { debug, getUrlEncodedFormData } from "@/app/utils";
 
 import { KeyValueObj } from "@/app/types";
 import { NextResponse } from "next/server";
 import { baseAppUrlSelector } from "@/app/utils/oauth-utils";
-import { getUrlEncodedFormData } from "@/app/utils";
+import { encryptPayload } from "@/app/api/oauth/encryption";
 
 const enableEncryption = process.env.NEXT_PUBLIC_CS_OAUTH_ENCRYPTION === "true";
 
@@ -15,8 +15,6 @@ const enableEncryption = process.env.NEXT_PUBLIC_CS_OAUTH_ENCRYPTION === "true";
  * @return {*}
  */
 export async function POST(request: Request) {
-  const logs = process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true";
-
   let code = "unknown";
   let region = "NA";
   let codeVerifier = "unknown";
@@ -43,13 +41,14 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: getUrlEncodedFormData(params),
     });
-    let data = await response.json();
+    let data = { ...(await response.json()), code_verifier: codeVerifier };
     const expires_at = now + data.expires_in * 1000;
+    //TODO:Testing auto refresh...
+    // const expires_at = now + 20 * 1000;
+
     if (enableEncryption) {
       data = encryptPayload(data);
-      if (logs) {
-        console.log("ENCRYPTED DATA", data);
-      }
+      debug("ENCRYPTED DATA", data);
     }
 
     return NextResponse.json({

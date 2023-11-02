@@ -27,7 +27,7 @@ const EncryptionService = class {
    */
   decrypt(value: string): string {
     try {
-      var bytes = AES.decrypt(value, this.key);
+      const bytes = AES.decrypt(value, this.key);
       const decrypted = bytes.toString(Utf8);
       return decrypted;
     } catch (ex) {

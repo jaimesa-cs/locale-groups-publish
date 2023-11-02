@@ -1,11 +1,12 @@
 import { IContentstackResponse, SUCCESSFUL_RESPONSES } from "../../models";
 import { NextRequest, NextResponse } from "next/server";
+import { debug, debugEnabled } from "@/app/utils";
 
-import { DefaultFetchRepeatStrategy } from "@/app/utils/fetch";
+import { FetchPlusStrategy } from "@/app/utils/fetchPlus";
 import { baseApiUrlSelector } from "@/app/utils/oauth-utils";
 import { prepareHeaders } from "../../helper";
 
-const fetchStrategy = new DefaultFetchRepeatStrategy();
+const fetchStrategy = new FetchPlusStrategy();
 const DATA_METHODS = ["POST", "PUT"];
 
 /**
@@ -96,11 +97,10 @@ export async function DELETE(
  */
 const doResponse = (response: IContentstackResponse) => {
   //TODO: SUPPORT MORE SUCCESSFUL RESPONSES
-  const logs = process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true";
+
   if (SUCCESSFUL_RESPONSES.includes(response.status)) {
-    if (logs) {
-      console.log("RESPONSE", response.payload);
-    }
+    debug("RESPONSE", response.payload);
+
     return NextResponse.json(response.payload);
   } else {
     console.error(response.friendlyMessage, response.payload);
@@ -125,8 +125,7 @@ const doFetch = async (
   headers: Headers,
   data?: any
 ): Promise<IContentstackResponse> => {
-  const logs = process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true";
-  if (logs) {
+  if (debugEnabled) {
     console.log(
       `Proxying ${method} request to [${slug.join("/")}] with data: `,
       data
@@ -139,7 +138,7 @@ const doFetch = async (
     console.log("/INPUT HEADERS =====================");
   }
   const newHeaders = prepareHeaders(headers);
-  if (logs) {
+  if (debugEnabled) {
     console.log("OUTPUT HEADERS =====================");
     console.log(newHeaders);
     console.log("/OUTPUT HEADERS ====================");
@@ -150,30 +149,28 @@ const doFetch = async (
     body:
       DATA_METHODS.includes(method) && data ? JSON.stringify(data) : undefined,
   };
-  if (logs) {
-    console.log("CONFIG", config);
-  }
-  const response = await fetchStrategy.executeRequest(
-    getUrl(headers.get("region") || "", slug, url),
-    config
-  );
+  debug("CONFIG", config);
 
-  if (response && (response.status === 200 || response.status === 201)) {
+  try {
+    const data = await fetchStrategy.executeRequest(
+      getUrl(headers.get("region") || "", slug, url),
+      config
+    );
     return {
-      status: response.status,
+      status: 200,
       friendlyMessage: `Successfully ${method}ed the data to [${slug.join(
         "/"
       )}"]`,
-      payload: await response.json(),
+      payload: data,
     };
-  } else {
-    const errorPayload = await response?.json();
+  } catch (e) {
+    console.log("Error executing request", e);
     return {
-      payload: errorPayload,
-      status: response?.status || 500,
+      payload: e,
+      status: 500,
       friendlyMessage: `Something went wrong ${method}ing the data: '[${slug.join(
         "/"
-      )}]', Status: ${response?.status}, Status Text: ${response?.statusText}`,
+      )}]'`,
     };
   }
 };

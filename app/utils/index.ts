@@ -38,10 +38,10 @@ export const sleep = (ms: number) => {
 };
 
 export const getUrlEncodedFormData = (params: KeyValueObj) => {
-  const formBody = [];
-  for (var property in params) {
-    var encodedKey = encodeURIComponent(property);
-    var encodedValue = encodeURIComponent(params[property]);
+  const formBody: any[] = [];
+  for (const property in params) {
+    const encodedKey: any = encodeURIComponent(property);
+    const encodedValue: any = encodeURIComponent(params[property]);
     formBody.push(encodedKey + "=" + encodedValue);
   }
   return formBody.join("&");
@@ -50,21 +50,6 @@ export const getUrlEncodedFormData = (params: KeyValueObj) => {
 export const cleanLocalStorageItem = (item: string) => {
   return item.replaceAll('"', "");
 };
-
-// export const countReferences = <T extends ReferenceDetailLite>(
-//   arr: T[],
-//   checkedReferences: Record<string, boolean>
-// ): number => {
-//   return arr.reduce((acc, curr: T) => {
-//     return (
-//       acc +
-//       (curr.references && checkedReferences && checkedReferences[curr.uniqueKey]
-//         ? 1
-//         : 0) +
-//       countReferences(curr.references ?? [], checkedReferences)
-//     );
-//   }, 0);
-// };
 
 export const getUniqueReferenceKeys = (
   arr: ReferenceDetailLite[],
@@ -108,17 +93,17 @@ export const genericFlatten = <T extends KeyValueObj>(
 };
 
 export const flattenEntry = (entry: any) => {
-  var result: any = {};
+  const result: any = {};
   function recurse(cur: any, propPath: any) {
     if (Object(cur) !== cur) {
       result[propPath] = cur;
     } else if (Array.isArray(cur)) {
-      for (var i = 0, l = cur.length; i < l; i++)
-        recurse(cur[i], propPath + "[" + i + "]");
+      const l = cur.length;
+      for (let i = 0; i < l; i++) recurse(cur[i], propPath + "[" + i + "]");
       if (l == 0) result[propPath] = [];
     } else {
-      var isEmpty = true;
-      for (var p in cur) {
+      let isEmpty = true;
+      for (const p in cur) {
         isEmpty = false;
         recurse(cur[p], propPath ? propPath + "." + p : p);
       }
@@ -152,6 +137,33 @@ export const assetMapper = (entry: any) => {
 export const calculateProgress = (current: number, total: number) => {
   const newProgress = current + 100 / total;
   return newProgress > 100 ? 100 : newProgress;
+};
+
+export const throwRanddomError = (percentage: number) => {
+  // //Throw an execption 20% of the time to test the retry logic.
+  const threshold = 100 / percentage;
+  const rand = Math.floor(Math.random() * threshold);
+  if (rand === 0) {
+    console.log("RANDOM ERROR, SO WE CAN TEST RETRY LOGIC");
+    throw new Error("Random error");
+  }
+};
+
+export const debugEnabled = process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true";
+
+export const debug = (message?: any, ...optionalParams: any[]): void => {
+  if (debugEnabled) {
+    console.log(message, ...optionalParams);
+  }
+};
+export const getStdTimezoneOffset = (d: Date) => {
+  var jan = new Date(d.getFullYear(), 0, 1);
+  var jul = new Date(d.getFullYear(), 6, 1);
+  return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+};
+
+export const isDstObserved = (d: Date) => {
+  return d.getTimezoneOffset() < getStdTimezoneOffset(d);
 };
 
 export default utils;

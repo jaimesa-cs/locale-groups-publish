@@ -1,9 +1,9 @@
 import EncryptionService, { encryptPayload } from "@/app/api/oauth/encryption";
+import { debug, getUrlEncodedFormData } from "@/app/utils";
 
 import { KeyValueObj } from "@/app/types";
 import { NextResponse } from "next/server";
 import { baseAppUrlSelector } from "@/app/utils/oauth-utils";
-import { getUrlEncodedFormData } from "@/app/utils";
 
 const enableEncryption = process.env.NEXT_PUBLIC_CS_OAUTH_ENCRYPTION === "true";
 
@@ -15,12 +15,11 @@ const enableEncryption = process.env.NEXT_PUBLIC_CS_OAUTH_ENCRYPTION === "true";
  * @return {*}
  */
 export async function POST(request: Request) {
-  const logs = process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true";
-
   const encryption = new EncryptionService();
   try {
-    let body = await request.json();
-    let { refreshToken, region, code_verifier } = body;
+    const body = await request.json();
+    const { region } = body;
+    let { refreshToken } = body;
     const baseUrl = baseAppUrlSelector(region);
     if (enableEncryption) {
       refreshToken = encryption.decrypt(refreshToken);
@@ -31,7 +30,6 @@ export async function POST(request: Request) {
       client_id: process.env.NEXT_PUBLIC_CS_CLIENT_ID || "",
       redirect_uri: process.env.NEXT_PUBLIC_REDIRECT_URL || "",
       refresh_token: refreshToken,
-      code_verifier: code_verifier,
     };
 
     const now = Date.now(); //This ensures the expires_at is always correct.
@@ -41,12 +39,13 @@ export async function POST(request: Request) {
       body: getUrlEncodedFormData(params),
     });
     let data = await response.json();
+
     const expires_at = now + data.expires_in * 1000;
+    //TODO:Testing auto refresh...
+    // const expires_at = now + 20 * 1000;
     if (enableEncryption) {
       data = encryptPayload(data);
-      if (logs) {
-        console.log("ENCRYPTED DATA", data);
-      }
+      debug("ENCRYPTED DATA", data);
     }
 
     return NextResponse.json({

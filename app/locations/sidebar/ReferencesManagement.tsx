@@ -2,40 +2,37 @@
 
 import Configuration from "./Configuration";
 import DefaultLoading from "@/app/components/DefaultLoading";
-import ExtensionProvider from "@/app/common/contexts/entrySidebarExtensionContext";
 import React from "react";
+import SecurityOptions from "./SecurityOptions";
+import useAuth from "@/app/hooks/oauth/useAuth";
 import { useBranch } from "@/app/hooks/useBranch";
 
 const ReferencesManagement = () => {
-  const { branch, branchReady } = useBranch();
   const ref = React.useRef(null);
+
+  const { branchReady } = useBranch();
+  const { isRefreshingToken, canRefresh, isValid } = useAuth({
+    from: "ReferencesManagement",
+    autoRefresh: true,
+  });
+
+  //IFrame setup
   React.useEffect(() => {
     const iframeWrapperRef = ref.current;
     // @ts-ignore
     window.iframeRef = iframeWrapperRef;
   }, []);
 
-  //Localization Copy
-
-  const [loading] = React.useState(false);
-
-  const [progress] = React.useState(0);
-
   return (
     <div ref={ref}>
-      <ExtensionProvider>
-        {!branchReady ? (
-          <DefaultLoading title="Loading..." />
-        ) : (
-          <div>
-            {branch?.uid && (
-              <div className="pl-2">
-                <Configuration />
-              </div>
-            )}
-          </div>
-        )}
-      </ExtensionProvider>
+      {!isValid || isRefreshingToken || !branchReady ? (
+        <DefaultLoading title={`${canRefresh ? "Authorizing..." : ""}`} />
+      ) : (
+        <div className="gap-y-2">
+          <Configuration />
+          <SecurityOptions />
+        </div>
+      )}
     </div>
   );
 };

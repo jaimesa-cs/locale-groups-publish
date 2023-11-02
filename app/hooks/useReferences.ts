@@ -1,27 +1,23 @@
 import {
-  ILocaleConfig,
   ReferenceDetailLite,
   ReferenceLocaleData,
-  UserSelections,
 } from "../components/sidebar/models/models";
 
 import React from "react";
 import { getUniqueReferenceKeys } from "../utils";
-import useUserSelections from "./useUserSelections";
 
 export interface UseReferencesProps {
-  data: ReferenceLocaleData[];
-  locales?: ILocaleConfig[];
+  // data: ReferenceLocaleData[];
+  // setData: React.Dispatch<React.SetStateAction<ReferenceLocaleData[]>>;
   checkedLocales: Record<string, boolean>;
-  checkedReferences: Record<string, Record<string, boolean>>;
-  openReferences: Record<string, Record<string, boolean>>;
-  setData: React.Dispatch<React.SetStateAction<ReferenceLocaleData[]>>;
-  setCheckedReferences: React.Dispatch<
-    React.SetStateAction<Record<string, Record<string, boolean>>>
-  >;
   setCheckedLocales: React.Dispatch<
     React.SetStateAction<Record<string, boolean>>
   >;
+  checkedReferences: Record<string, Record<string, boolean>>;
+  setCheckedReferences: React.Dispatch<
+    React.SetStateAction<Record<string, Record<string, boolean>>>
+  >;
+  openReferences: Record<string, Record<string, boolean>>;
   setOpenReferences: React.Dispatch<
     React.SetStateAction<Record<string, Record<string, boolean>>>
   >;
@@ -48,7 +44,6 @@ export const useReferences = ({
 }: {
   data: ReferenceLocaleData[];
 }): UseReferencesProps => {
-  const { locales } = useUserSelections();
   const [d, setData] = React.useState<ReferenceLocaleData[]>(data);
   const [checkedLocales, setCheckedLocales] = React.useState<
     Record<string, boolean>
@@ -63,17 +58,23 @@ export const useReferences = ({
   const getTotalReferenceCount = React.useCallback((): number => {
     let list: string[] = [];
     data.forEach((d) => {
-      list.push(
-        ...[
-          ...getUniqueReferenceKeys(
-            d.topLevelEntry.references,
-            [],
-            checkedReferences[d.locale]
-          ),
-          d.topLevelEntry.uniqueKey,
-        ]
+      const uniqueReferenceKeys = getUniqueReferenceKeys(
+        d.topLevelEntry.references,
+        [],
+        checkedReferences[d.locale]
       );
+
+      const newList = [...uniqueReferenceKeys];
+      if (
+        checkedReferences[d.locale] &&
+        Object.values(checkedReferences[d.locale]).some((v) => v === true)
+      ) {
+        newList.push(d.topLevelEntry.uniqueKey);
+      }
+
+      list.push(...newList);
     });
+
     return list.length;
   }, [checkedReferences, data]);
 
@@ -114,14 +115,13 @@ export const useReferences = ({
   }, [data]);
 
   return {
-    data: d,
-    setData,
-    locales,
-    checkedLocales,
+    // data: d,
+    // setData,
     checkedReferences,
-    openReferences,
     setCheckedReferences,
+    checkedLocales,
     setCheckedLocales,
+    openReferences,
     setOpenReferences,
     totalReferenceCount: getTotalReferenceCount(),
   };

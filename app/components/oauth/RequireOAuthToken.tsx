@@ -1,29 +1,30 @@
 "use client";
 
-import AuthorizeButton from "../../components/AuthorizeButton";
+import AuthorizeButton from "../AuthorizeButton";
+import DefaultLoading from "../DefaultLoading";
 import React from "react";
+import SecurityOptions from "@/app/locations/sidebar/SecurityOptions";
+import { auto } from "@popperjs/core";
 import useAuth from "../../hooks/oauth/useAuth";
 
 const RequireOAuthToken = ({ children }: { children: React.ReactNode }) => {
-  const { isValid, canRefresh, asyncRefresh } = useAuth();
+  const { isValid, isRefreshingToken, canRefresh, expiresOn } = useAuth({
+    autoRefresh: true,
+    from: "RequireOAuthToken",
+  });
 
-  React.useEffect(() => {
-    //Try to refresh token if possible
-    if (canRefresh) {
-      asyncRefresh(true);
-    }
-  }, [asyncRefresh, canRefresh]);
-
-  return isValid ? (
-    <div>{children}</div>
-  ) : canRefresh ? (
-    <div className="text-base font-medium text-[#6C5CE7] dark:text-white p-4">
-      Refreshing token...
-    </div>
-  ) : (
-    <div className="p-4">
-      <AuthorizeButton />
-    </div>
+  return (
+    <>
+      {isValid ? (
+        <div>{children}</div>
+      ) : canRefresh || isRefreshingToken ? (
+        <DefaultLoading title={"Authorizing..."} />
+      ) : (
+        <div className="p-4">
+          <SecurityOptions renderExpanded />
+        </div>
+      )}
+    </>
   );
 };
 

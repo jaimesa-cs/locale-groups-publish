@@ -1,31 +1,35 @@
 import { DefaultAxiosStrategy, RepeatStrategy } from "@/app/utils/axios";
+import { debug, debugEnabled } from "@/app/utils";
 
 import React from "react";
-import { TOKEN_STORAGE_KEY } from "@/app/components/sidebar/models/models";
 import useAuth from "./useAuth";
 import { useBranch } from "../useBranch";
 import { useEffect } from "react";
 
 interface UseContentstackAxiosResult {
   strategy: RepeatStrategy;
+  ready: boolean;
 }
 
 const useContentstackAxios = (): UseContentstackAxiosResult => {
   const { branch } = useBranch();
-  const { auth, setAuth, syncRefresh } = useAuth();
-  const [strategy, setStrategy] = React.useState<RepeatStrategy>(
-    new DefaultAxiosStrategy()
-  );
+  const { auth, setAuth, syncRefresh, isValid } = useAuth({
+    from: "useContentstackAxios",
+  });
+  const [strategy] = React.useState<RepeatStrategy>(new DefaultAxiosStrategy());
+  const [ready, setReady] = React.useState<boolean>(false);
 
   useEffect(() => {
-    if (!branch?.api_key || !branch?.uid || !auth?.access_token) return;
+    if (!isValid || !branch?.api_key || !branch?.uid || !auth?.access_token) {
+      setReady(false);
+      return;
+    }
 
     let requestIntercept: number;
     let responseIntercept: number;
 
-    if (process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true") {
-      console.log("Setting interceptors");
-    }
+    debug("Setting interceptors");
+
     requestIntercept = strategy.axiosInstance.interceptors.request.use(
       (config: any) => {
         if (config && config.headers) {
@@ -34,7 +38,7 @@ const useContentstackAxios = (): UseContentstackAxiosResult => {
           config.headers["branch"] = branch?.uid || "";
           config.headers["region"] = sessionStorage.getItem("region") || "NA";
 
-          if (process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true") {
+          if (debugEnabled) {
             console.log("Axios Request Intercept :: URL", config.url);
             console.log("Axios Request Intercept :: Headers", config.headers);
           }
@@ -51,6 +55,7 @@ const useContentstackAxios = (): UseContentstackAxiosResult => {
       async (error: any) => {
         const prevRequest = error?.config;
         if (error?.response?.status === 403 && !prevRequest?.sent) {
+          console.log("Axios Response Intercept :: Access Error", error);
           prevRequest.sent = true;
           const data = await syncRefresh();
           await setAuth(data);
@@ -60,22 +65,22 @@ const useContentstackAxios = (): UseContentstackAxiosResult => {
         return Promise.reject(error);
       }
     );
-    strategy.setReady(true);
+    setReady(true);
 
     return () => {
       if (requestIntercept >= 0 && responseIntercept >= 0) {
-        if (process.env.NEXT_PUBLIC_NEXTJS_LOGS === "true") {
-          console.log("Removing interceptors");
-        }
+        debug("Removing interceptors");
+
         strategy.axiosInstance.interceptors.response.eject(responseIntercept);
         strategy.axiosInstance.interceptors.request.eject(requestIntercept);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth, branch]);
+  }, [auth, branch, isValid]);
 
   return {
     strategy,
+    ready,
   };
 };
 

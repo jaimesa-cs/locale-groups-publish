@@ -111,10 +111,10 @@ const AppConfiguration = () => {
   const [isValid, setIsValid] = React.useState<boolean>(true);
   return (
     <MarketplaceAppProvider>
-      <div className="p-10">
+      <div className="p-10 ">
         <Accordion title={MANGO_CONFIGURATION_NAME} renderExpanded noChevron>
-          <div className="app-config">
-            <div className="app-config-container">
+          <div className="app-config ">
+            <div className="app-config-container h-96">
               <div className="app-component-content p-4">
                 <FieldLabel
                   required
@@ -137,6 +137,7 @@ const AppConfiguration = () => {
                       style={{
                         border: !isValid ? "1px solid red" : "",
                       }}
+                      className="overflow-auto"
                     >
                       <CodeEditor
                         key="advancedPublishingConfig"
@@ -163,6 +164,7 @@ const AppConfiguration = () => {
                         style={{
                           fontSize: 12,
                           width: "100%",
+
                           backgroundColor: "#f5f5f5",
                           fontFamily:
                             "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
@@ -174,7 +176,7 @@ const AppConfiguration = () => {
                 <br />
               </div>
 
-              <div className="flex justify-center">
+              <div className="flex justify-center pb-20">
                 <Button
                   isLoading={loading}
                   buttonType="secondary"

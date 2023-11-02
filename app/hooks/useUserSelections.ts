@@ -5,12 +5,17 @@ import {
 
 import useAppStorage from "./useAppStorage";
 
-const useUserSelections = () => {
-  const { value: selections, set: setSelections } =
-    useAppStorage<UserSelections>(SELECTIONS_STORAGE_KEY);
+const useUserSelections = (key?: string) => {
+  const {
+    value: selections,
+    store: setSelections,
+    valueRead,
+  } = useAppStorage<UserSelections>(key || SELECTIONS_STORAGE_KEY);
+
   return {
     ...selections,
     setSelections,
+    loaded: valueRead,
   };
 };
 

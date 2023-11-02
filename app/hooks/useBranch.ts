@@ -10,9 +10,10 @@ export const useBranch = (): { branch: any; branchReady: boolean } => {
 
   React.useEffect(() => {
     if (appSdk?.stack.getCurrentBranch()) {
-      // console.log("Branch found", appSdk?.stack.getCurrentBranch());
-      setBranch(appSdk?.stack.getCurrentBranch());
-      setBranchReady(true);
+      setBranch(() => {
+        setBranchReady(true);
+        return appSdk?.stack.getCurrentBranch();
+      });
     } else {
       console.warn("No branch found");
     }

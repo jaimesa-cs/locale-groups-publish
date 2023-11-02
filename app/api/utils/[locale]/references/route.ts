@@ -1,7 +1,6 @@
 import { doResponse, getLocaleData, prepareHeaders } from "@/app/api/helper";
 
 import { NextRequest } from "next/server";
-import { baseApiUrlSelector } from "@/app/utils/oauth-utils";
 
 /**
  * Handles the POST request to get the reference data for a locale.
@@ -26,7 +25,7 @@ export async function POST(
       context.params.locale,
       branch,
       depth || 5,
-      1,
+      0,
       prepareHeaders(request.headers)
     );
     return doResponse({
@@ -34,10 +33,12 @@ export async function POST(
       payload: localeData,
     });
   } catch (e) {
-    return {
-      payload: `Something went wrong fetching the data: '${contentTypeUid} :: ${uid} :: ${context.params.locale}]', Error: ${e}`,
+    return doResponse({
       status: 500,
-      details: e,
-    };
+      payload: {
+        msg: `Something went wrong fetching the data: '${contentTypeUid} :: ${uid} :: ${context.params.locale}]'`,
+        details: e,
+      },
+    });
   }
 }

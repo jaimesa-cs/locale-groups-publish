@@ -7,8 +7,6 @@ import {
   ReturnCbModalProps,
 } from "@contentstack/venus-components/build/components/Modal/Modal";
 
-import { KeyValueObj } from "../../../types";
-
 export const ASSET_REGEXP: RegExp =
   /"url":[\s:]+"https:\/\/images.contentstack.io\/v3\/assets\/[a-z0-9]+\/([a-z0-9]+)\//gm;
 export const REF_REGEXP: RegExp =
@@ -26,14 +24,6 @@ export interface ICheckable extends Record<string, any> {
   name: string;
   checked: boolean;
 }
-
-// export interface IDataStatus {
-//   all: IDictionary<IReference>;
-//   references: any[];
-//   statuses: any;
-//   initiallySelected: any;
-//   selectedReferences: any;
-// }
 
 export interface Selections {
   [key: string]: Selection;

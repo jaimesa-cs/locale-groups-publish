@@ -1,11 +1,8 @@
 export interface FetchRepeatStrategy {
-  attempts: number;
-  initialDelay: number;
-  resolveDelay: (attempt: number) => number;
   executeRequest: (
     infoOrUrl: RequestInfo | URL,
     config?: RequestInit
-  ) => Promise<Response | undefined>;
+  ) => Promise<any>;
 }
 
 export const DefaultFetchRepeatStrategy = class implements FetchRepeatStrategy {
@@ -14,33 +11,49 @@ export const DefaultFetchRepeatStrategy = class implements FetchRepeatStrategy {
   resolveDelay: (attempt: number) => number;
 
   constructor() {
-    this.attempts = 3;
-    this.initialDelay = 100;
+    this.attempts = 5;
+    this.initialDelay = 250;
     this.resolveDelay = (attempt: number) => {
-      return this.initialDelay * attempt;
+      console.warn(
+        `Attempt #${attempt + 1} failed, waiting ${
+          this.initialDelay * (attempt + 1)
+        }...`
+      );
+      return this.initialDelay * (attempt + 1);
     };
   }
   async executeRequest(infoOrUrl: RequestInfo | URL, config?: RequestInit) {
-    let url = infoOrUrl.toString().toLowerCase();
-    let response;
-    for (let i = 0; i < this.attempts; i++) {
-      try {
-        response = await fetch(url, {
-          ...config,
-        });
-        break;
-      } catch (error: any) {
-        //Only throw the error if it's not a 429, otherwise wait and try again.
-        if (i === this.attempts - 1 && error?.response?.status !== 429) {
-          return error;
+    const url = infoOrUrl.toString().toLowerCase();
+    let data: any = undefined;
+    let shouldContinue = true;
+    for (let i = 0; i < this.attempts && shouldContinue; i++) {
+      const response = await fetch(url, { ...config });
+      data = await response.json();
+      if (data.error_code) {
+        const code = data.error_code;
+        switch (code) {
+          case 429:
+            if (i < this.attempts - 1) {
+              console.warn(`Error executing request, retrying...`);
+              await new Promise((resolve) =>
+                setTimeout(resolve, this.resolveDelay(i))
+              );
+            }
+            break;
+          default:
+            shouldContinue = false;
+            break;
         }
-        console.warn("Error executing request, waiting and trying again...");
-        console.dir(error, { depth: 5, colors: true });
-        await new Promise((resolve) =>
-          setTimeout(resolve, this.resolveDelay(i))
-        );
       }
     }
-    return response;
+    if (data.error_code) {
+      return data;
+    }
+    if (data === undefined) {
+      throw new Error(
+        "Unable to execute request after 5 attempts, or because it's not a rate limit problem."
+      );
+    }
+    return data;
   }
 };

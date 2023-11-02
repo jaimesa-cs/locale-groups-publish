@@ -3,15 +3,14 @@
 import getContentstackOAuthUrl, {
   windowProps,
 } from "../hooks/useContentstackOAuth";
-import { has, set } from "lodash";
 
-import ContentstackAppSDK from "@contentstack/app-sdk";
 import { EXCHANGE_CODE_URL } from "../hooks/oauth/constants";
 import { KeyValueObj } from "../types";
 import React from "react";
 import axios from "../utils/axios";
 import { baseAppUrlSelector } from "../utils/oauth-utils";
 import dynamic from "next/dynamic";
+import { has } from "lodash";
 import { showError } from "../utils/notifications";
 import useAuth from "../hooks/oauth/useAuth";
 

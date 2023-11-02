@@ -3,12 +3,12 @@ import {
   ReferenceLocaleData,
 } from "../components/sidebar/models/models";
 
-import { DefaultFetchRepeatStrategy } from "../utils/fetch";
 import EncryptionService from "./oauth/encryption";
+import { FetchPlusStrategy } from "../utils/fetchPlus";
 import { NextResponse } from "next/server";
 import { SUCCESSFUL_RESPONSES } from "./models";
 import { baseApiUrlSelector } from "../utils/oauth-utils";
-import { max } from "lodash";
+import { debug } from "../utils";
 
 /**
  * The response object for the utils route.
@@ -21,7 +21,8 @@ export interface UtilsResponse {
   payload: any;
 }
 
-const fetchStrategy = new DefaultFetchRepeatStrategy();
+// const fetchStrategy = new DefaultFetchRepeatStrategy();
+const fetchStrategy = new FetchPlusStrategy();
 export const ASSET_REGEXP: RegExp =
   /"url":[\s:]+"https:\/\/images.contentstack.io\/v3\/assets\/[a-z0-9]+\/([a-z0-9]+)\//gm;
 export const REF_REGEXP: RegExp =
@@ -36,7 +37,9 @@ export const doResponse = (response: UtilsResponse) => {
   if (SUCCESSFUL_RESPONSES.includes(response.status)) {
     return NextResponse.json(response.payload);
   } else {
-    return new Response(response.payload, { status: response.status });
+    return new Response(JSON.stringify(response.payload), {
+      status: response.status,
+    });
   }
 };
 
@@ -48,16 +51,13 @@ export const doResponse = (response: UtilsResponse) => {
 export const prepareHeaders = (headers: Headers) => {
   const enableEncryption =
     process.env.NEXT_PUBLIC_CS_OAUTH_ENCRYPTION === "true";
-  let newHeaders: Record<string, string> = {};
+  const newHeaders: Record<string, string> = {};
 
   newHeaders["Content-Type"] =
     headers.get("content-type") || "application/json";
   newHeaders["api_key"] = headers.get("cs-api-key") || "";
   newHeaders["branch"] = headers.get("branch") || "";
   newHeaders["region"] = headers.get("region") || "";
-  if (headers.get("cs-api-version")) {
-    newHeaders["api_version"] = headers.get("cs-api-version") || "";
-  }
 
   const bearer = headers.get("authorization")?.replace("Bearer ", "");
 
@@ -66,35 +66,6 @@ export const prepareHeaders = (headers: Headers) => {
     newHeaders["authorization"] = `Bearer ${encryption.decrypt(bearer || "")}`;
   } else {
     newHeaders["authorization"] = `Bearer ${bearer}`;
-  }
-  return newHeaders;
-};
-
-export const prepareHeaders3 = (headers: Headers) => {
-  const logs = process.env.NEXJS_LOGS === "true";
-
-  const iterator = headers.entries();
-  let newHeaders: Record<string, string> = {};
-
-  for (const entry of iterator) {
-    if (logs) {
-      console.log("Header Entry:", entry);
-    }
-    newHeaders[entry[0]] = entry[1];
-  }
-  const enableEncryption =
-    process.env.NEXT_PUBLIC_CS_OAUTH_ENCRYPTION === "true";
-
-  const bearer = headers.get("authorization")?.replace("Bearer ", "");
-
-  if (enableEncryption) {
-    const encryption = new EncryptionService();
-    newHeaders["authorization"] = `Bearer ${encryption.decrypt(bearer || "")}`;
-  } else {
-    newHeaders["authorization"] = `Bearer ${bearer}`;
-  }
-  if (logs) {
-    console.log("HEADERS", newHeaders);
   }
   return newHeaders;
 };
@@ -116,7 +87,7 @@ export const getLocaleData = async (
   maxDepth: number,
   currentDepth: number,
   headers: Record<string, string>
-): Promise<ReferenceLocaleData> => {
+): Promise<ReferenceLocaleData | null> => {
   const detail = await getLocaleReferenceData(
     contentTypeUid,
     uid,
@@ -126,12 +97,18 @@ export const getLocaleData = async (
     currentDepth,
     headers
   );
-  const localeData: ReferenceLocaleData = {
-    checked: true,
-    topLevelEntry: detail,
-    locale,
-  };
-  return localeData;
+  if (detail === null) {
+    throw new Error(
+      `Entry ${uid} not found in locale ${locale} for content type ${contentTypeUid}`
+    );
+  } else {
+    const localeData: ReferenceLocaleData = {
+      checked: true,
+      topLevelEntry: detail,
+      locale,
+    };
+    return localeData;
+  }
 };
 
 /**
@@ -154,7 +131,7 @@ export const getReferences = async (
 ): Promise<UtilsResponse> => {
   try {
     let locale = "n/a";
-    let payload: ReferenceLocaleData[] = [];
+    const payload: ReferenceLocaleData[] = [];
     for (let i = 0; i < locales.length; i++) {
       locale = locales[i];
       const localeData = await getLocaleData(
@@ -166,7 +143,27 @@ export const getReferences = async (
         currentDepth,
         headers
       );
-      payload.push(localeData);
+      if (localeData !== null) {
+        payload.push(localeData);
+      } else {
+        console.warn(
+          `Entry ${uid} not found in locale ${locale} for content type ${contentTypeUid}`
+        );
+        payload.push({
+          locale,
+          checked: true,
+          topLevelEntry: {
+            uniqueKey: `${uid}_${locale}`,
+            uid: uid,
+            isAsset: false,
+            content_type_uid: contentTypeUid,
+            title: "n/a",
+            references: [],
+            checked: false,
+            version: 0,
+          },
+        } as ReferenceLocaleData);
+      }
     }
 
     return {
@@ -203,40 +200,42 @@ const getLocaleReferenceData = async (
   headers: Record<string, string>
 ): Promise<ReferenceDetailLite> => {
   const uniqueKey = `${uid}_${locale}`;
-
-  //Check the reference has not yet been processed, and if so, return it.
-
-  //Otherwise get new references
   const theEntry = await getEntry(contentTypeUid, uid, locale, branch, headers);
-
   const entryAsString = JSON.stringify(theEntry, null, 2);
-  const e = await getRegexEntryReferences(
-    entryAsString,
-    locale,
-    branch,
-    maxDepth,
-    currentDepth,
-    headers,
-    []
-  );
-  const a = await getRegexAssetReferences(
-    entryAsString,
-    locale,
-    branch,
-    maxDepth,
-    currentDepth,
-    headers
-  );
-  return {
-    uniqueKey: uniqueKey,
-    uid: uid,
-    isAsset: false,
-    content_type_uid: contentTypeUid,
-    title: theEntry.title,
-    references: [...e, ...a],
-    checked: true,
-    version: theEntry._version,
-  };
+
+  if (theEntry === null || entryAsString === undefined) {
+    throw new Error(
+      `Entry ${uid} not found in locale ${locale} for content type ${contentTypeUid}`
+    );
+  } else {
+    const e = await getRegexEntryReferences(
+      entryAsString,
+      locale,
+      branch,
+      maxDepth,
+      currentDepth,
+      headers,
+      []
+    );
+    const a = await getRegexAssetReferences(
+      entryAsString,
+      locale,
+      branch,
+      maxDepth,
+      currentDepth,
+      headers
+    );
+    return {
+      uniqueKey: uniqueKey,
+      uid: uid,
+      isAsset: false,
+      content_type_uid: contentTypeUid,
+      title: theEntry.title,
+      references: [...e, ...a],
+      checked: true,
+      version: theEntry._version,
+    };
+  }
 };
 
 /**
@@ -258,6 +257,9 @@ const getRegexEntryReferences = async (
   headers: Record<string, string>,
   allRefs: ReferenceDetailLite[]
 ): Promise<ReferenceDetailLite[]> => {
+  if (currentDepth >= maxDepth) {
+    return [];
+  }
   const references: ReferenceDetailLite[] = [];
   const refs: ReferenceDetailLite[] =
     allRefs && allRefs.length > 0 ? [...allRefs] : [];
@@ -319,20 +321,16 @@ const getRegexAssetReferences = async (
   headers: Record<string, string>
 ): Promise<ReferenceDetailLite[]> => {
   const assetMatches: any = entryAsString.matchAll(ASSET_REGEXP);
+
   const assetUids: string[] = [];
   for (const aMatch of assetMatches) {
     assetUids.push(aMatch[1] as string);
   }
-  const refs = await getAssetReference(
-    assetUids,
-    locale,
-    branch,
-    maxDepth,
-    currentDepth,
-    headers
-  );
-
-  return refs === null ? [] : refs;
+  if (assetUids.length > 0) {
+    const refs = await getAssetReference(assetUids, locale, branch, headers);
+    return refs || [];
+  }
+  return [];
 };
 
 /**
@@ -347,13 +345,11 @@ const getAssetReference = async (
   uid: string[],
   locale: string,
   branch: string,
-  maxDepth: number,
-  currentDepth: number,
   headers: Record<string, string>
 ): Promise<ReferenceDetailLite[] | null> => {
   try {
     const baseUrl = baseApiUrlSelector(headers.region);
-    const response = await fetchStrategy.executeRequest(
+    const data = await fetchStrategy.executeRequest(
       `${baseUrl}/v3/assets?query={"uid": {"$in":[${uid.map(
         (u) => `"${u}"`
       )}]}}`,
@@ -365,22 +361,25 @@ const getAssetReference = async (
         },
       }
     );
-    const data = await response.json();
+    if (data) {
+      debug(`getAssetReference, ${data}`);
 
-    const result: ReferenceDetailLite[] = [];
-    data.assets.forEach((a: any) => {
-      result.push({
-        uniqueKey: `${a.uid}_${locale}`,
-        uid: a.uid,
-        isAsset: true,
-        content_type_uid: "asset",
-        title: a.title,
-        references: [],
-        checked: true,
-        version: a._version,
+      const result: ReferenceDetailLite[] = [];
+      data?.assets?.forEach((a: any) => {
+        result.push({
+          uniqueKey: `${a.uid}_${locale}`,
+          uid: a.uid,
+          isAsset: true,
+          content_type_uid: "asset",
+          title: a.title,
+          references: [],
+          checked: true,
+          version: a._version,
+        });
       });
-    });
-    return result;
+      return result;
+    }
+    return null;
   } catch (e) {
     console.error(e);
     return null;
@@ -410,8 +409,15 @@ const getEntriesDetail = async (
   allRefs: ReferenceDetailLite[]
 ): Promise<ReferenceDetailLite[]> => {
   try {
+    if (currentDepth >= maxDepth) {
+      return [];
+    }
     const baseUrl = baseApiUrlSelector(headers.region);
-    const response = await fetchStrategy.executeRequest(
+    //TODO: THIS CALL MIGHT CAUSE TROUBLE FOR LARGER REFERENCE COUNT AS IT IS LIMITED TO 100
+    if (uid.length === 0) {
+      return [];
+    }
+    const data = await fetchStrategy.executeRequest(
       `${baseUrl}/v3/content_types/${contentTypeUid}/entries?locale=${locale}&query={"uid": {"$in":[${uid.map(
         (u) => `"${u}"`
       )}]}}`,
@@ -423,66 +429,93 @@ const getEntriesDetail = async (
         },
       }
     );
-    const data = await response.json();
+    if (data) {
+      const rr: ReferenceDetailLite[] =
+        allRefs && allRefs.length > 0 ? [...allRefs] : [];
+      debug("getEntriesDetail", data);
 
-    const rr: ReferenceDetailLite[] =
-      allRefs && allRefs.length > 0 ? [...allRefs] : [];
+      if (data && data.entries && data.entries.length > 0) {
+        for (let i = 0; i < data.entries.length; i++) {
+          const e = data.entries[i];
+          const uniqueKey = `${e.uid}_${locale}`;
+          try {
+            const entryAsString = JSON.stringify(e, null, 2);
+            const found = allRefs.find(
+              (r) =>
+                r.uniqueKey === uniqueKey &&
+                r.content_type_uid === contentTypeUid
+            );
+            let detail: any = {};
 
-    for (let i = 0; i < data.entries.length; i++) {
-      const e = data.entries[i];
-      const entryAsString = JSON.stringify(e, null, 2);
-      const uniqueKey = `${e.uid}_${locale}`;
+            if (found) {
+              rr.push(found);
+              continue;
+            } else {
+              detail = {
+                uniqueKey: uniqueKey,
+                uid: e.uid,
+                isAsset: false,
+                content_type_uid: contentTypeUid,
+                title: e.title,
+                references: [],
+                checked: true,
+                version: e._version,
+              };
 
-      const found = allRefs.find(
-        (r) =>
-          r.uniqueKey === uniqueKey && r.content_type_uid === contentTypeUid
-      );
-      let detail: any = {};
-
-      if (found) {
-        rr.push(found);
-        continue;
-      } else {
-        detail = {
-          uniqueKey: uniqueKey,
-          uid: e.uid,
-          isAsset: false,
-          content_type_uid: contentTypeUid,
-          title: e.title,
-          references: [],
-          checked: true,
-          version: e._version,
-        };
-        rr.push(detail);
-
-        if (currentDepth < maxDepth) {
-          currentDepth++;
-          const ne = await getRegexEntryReferences(
-            entryAsString,
-            locale,
-            branch,
-            maxDepth,
-            currentDepth++,
-            headers,
-            rr
-          );
-          const na = await getRegexAssetReferences(
-            entryAsString,
-            locale,
-            branch,
-            maxDepth,
-            currentDepth++,
-            headers
-          );
-          detail.references = [...ne, ...na];
-        } else {
-          console.log("Max depth reached");
+              currentDepth++;
+              if (currentDepth >= maxDepth) {
+                rr.push(detail);
+                continue;
+              }
+              const ne = await getRegexEntryReferences(
+                entryAsString,
+                locale,
+                branch,
+                maxDepth,
+                currentDepth,
+                headers,
+                rr
+              );
+              const na = await getRegexAssetReferences(
+                entryAsString,
+                locale,
+                branch,
+                maxDepth,
+                currentDepth,
+                headers
+              );
+              detail.references = [...ne, ...na]; //JAIME?
+              rr.push(detail);
+            }
+          } catch (error) {
+            console.error(
+              `Something went wrong while getting entries detail for ${uniqueKey}`
+            );
+            console.error(error);
+            const detail = {
+              uniqueKey: uniqueKey,
+              uid: e.uid,
+              isAsset: false,
+              content_type_uid: contentTypeUid,
+              title: e.title,
+              references: [],
+              checked: true,
+              version: e._version,
+            };
+            rr.push(detail);
+          }
         }
+      } else {
+        console.log(`No entries found for ${contentTypeUid} :: ${uid}`);
       }
+
+      return rr;
+    } else {
+      return [];
     }
-    return rr;
   } catch (e) {
     console.log("Something went wrong while getting entries detail");
+    console.log(e);
     return [];
   }
 };
@@ -503,7 +536,7 @@ const getEntry = async (
   headers: Record<string, string>
 ): Promise<any> => {
   const baseUrl = baseApiUrlSelector(headers.region);
-  const response = await fetchStrategy.executeRequest(
+  const data = await fetchStrategy.executeRequest(
     `${baseUrl}/v3/content_types/${contentTypeUid}/entries/${uid}?locale=${locale}`,
     {
       method: "GET",
@@ -513,6 +546,13 @@ const getEntry = async (
       },
     }
   );
-  const data = await response.json();
-  return data.entry;
+  if (!data) {
+    debug("getEntry :: null response.");
+
+    return null;
+  }
+
+  debug("getEntry :: data :: ", data);
+
+  return data ? data.entry : null;
 };
