@@ -36,6 +36,5 @@ next-env.d.ts
 
 .env
 .env.prod
-.env.backup
+.env.bak
 .env.local.bak
-.env.asics

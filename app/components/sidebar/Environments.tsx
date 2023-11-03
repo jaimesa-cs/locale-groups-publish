@@ -43,7 +43,7 @@ function Environments({}: EnvironmentsProps) {
         });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady, selections]);
+  }, [isReady, selections, loaded]);
 
   return loading ? (
     <DefaultLoading />

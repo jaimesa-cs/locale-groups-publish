@@ -32,6 +32,7 @@ const useAppStorage = <T>(key: string): UseAppStorageResult<T> => {
       if ((event as StorageEvent)?.key && (event as StorageEvent).key !== key) {
         return;
       }
+      setValueRead(false);
       ContentstackAppSDK.init().then((appSdk) => {
         appSdk.store.get(key).then((v) => {
           if (v) {
@@ -49,11 +50,14 @@ const useAppStorage = <T>(key: string): UseAppStorageResult<T> => {
   React.useEffect(() => {
     ContentstackAppSDK.init().then((appSdk) => {
       appSdk.store.get(key).then((v) => {
+        console.log("useAppStorage", key, v);
         if (v) {
           setValue(() => {
             setValueRead(true);
             return v;
           });
+        } else {
+          setValueRead(true);
         }
       });
     });

@@ -22,6 +22,7 @@ import { useAppConfig } from "@/app/hooks/useAppConfig";
 import useAppStorage from "@/app/hooks/useAppStorage";
 import { useCsOAuthApi } from "./ContentstackOAuthApi";
 import useSpanishDate from "@/app/hooks/useSpanishDate";
+import useUserSelections from "@/app/hooks/useUserSelections";
 
 interface CountryGroupsProps {
   summerTime: boolean;
@@ -36,10 +37,10 @@ function CountryGroups({ summerTime }: CountryGroupsProps) {
   const [groups, setGroups] = React.useState<GroupConfiguration[]>([]);
 
   const {
-    value: selections,
-    store: setSelections,
-    valueRead,
-  } = useAppStorage<UserSelections>(SELECTIONS_STORAGE_KEY);
+    groups: selections,
+    setSelections,
+    loaded: valueRead,
+  } = useUserSelections();
 
   React.useEffect(() => {
     if (!isReady) return;
@@ -58,13 +59,13 @@ function CountryGroups({ summerTime }: CountryGroupsProps) {
   React.useEffect(() => {
     if (!valueRead) return;
 
-    if (selections && selections.groups) {
-      setGroups(selections.groups);
+    if (selections) {
+      setGroups(selections);
     } else if (appConfig) {
       setGroups(appConfig.appConfiguration.groups);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appConfig, selections]);
+  }, [appConfig, selections, valueRead]);
 
   const areAllGroupsChecked = React.useCallback(() => {
     let checked = true;

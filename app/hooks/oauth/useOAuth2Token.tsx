@@ -31,35 +31,6 @@ interface AuthReceived {
 const OAuthCallbackHandler: React.FunctionComponent<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  // const { setAuth } = useAuth();
-
-  // React.useEffect(() => {
-  //   //? tsconfig.js > --downlevelIteration: true
-  //   const search = [...urlDecode(window.location.search.slice(1))];
-  //   const hash = [...urlDecode(window.location.hash.slice(1))];
-  //   const params: Map<string, string> = Map([...search, ...hash]);
-
-  //   //? Do we need this?
-  //   // if (state !== params.get("state")) throw ErrIncorrectStateToken;
-
-  //   const code: string | undefined = params.get("code");
-  //   if (code === undefined) throw ErrNoCode;
-
-  //   axios(EXCHANGE_CODE_URL, {
-  //     method: "POST",
-  //     data: {
-  //       code: code,
-  //     },
-  //   })
-  //     .then((res) => {
-  //       setAuth(res.data);
-  //       // window.opener.postMessage({ dummy: true }, "*");
-  //       window.close();
-  //     })
-  //     .catch((err) => {
-  //       console.log("🚀 ~ Error while initializing session");
-  //     });
-  // }, [setAuth]);
   const [cancelAuth, setAuthCancellation] = React.useState();
 
   const { REACT_APP_HOST_URL } = process.env;
@@ -87,7 +58,6 @@ const OAuthCallbackHandler: React.FunctionComponent<{
           { message: cancellationError },
           REACT_APP_HOST_URL
         );
-
         window.close();
       }, 3000);
     }

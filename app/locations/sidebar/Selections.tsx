@@ -132,30 +132,34 @@ const Selections = ({}: SelectionsProps) => {
         const countries = group.countries.filter((c: CountryData) => c.checked);
         for (let j = 0; j < countries.length; j++) {
           const country: CountryData = countries[j];
+          let scheduledAtString = "";
+          if (!now) {
+            const period: PeriodTime = summerTime
+              ? country.summerTime
+              : country.winterTime;
+            const scheduledAt = new Date(userSelectedScheduleDate);
 
-          const period: PeriodTime = summerTime
-            ? country.summerTime
-            : country.winterTime;
-          const scheduledAt = new Date(userSelectedScheduleDate);
+            if (period.dif === "-") {
+              scheduledAt.setTime(
+                scheduledAt.getTime() - period.hours * 60 * 60 * 1000
+              );
+            } else {
+              scheduledAt.setTime(
+                scheduledAt.getTime() + period.hours * 60 * 60 * 1000
+              );
+            }
 
-          if (period.dif === "-") {
-            scheduledAt.setTime(
-              scheduledAt.getTime() - period.hours * 60 * 60 * 1000
+            debug(
+              "Country: ",
+              country.name,
+              ", Period: ",
+              `${period.dif}${period.hours}`,
+              "Actual:",
+              scheduledAt.toISOString()
             );
-          } else {
-            scheduledAt.setTime(
-              scheduledAt.getTime() + period.hours * 60 * 60 * 1000
-            );
+            scheduledAtString = scheduledAt.toISOString();
           }
 
-          debug(
-            "Country: ",
-            country.name,
-            ", Period: ",
-            `${period.dif}${period.hours}`,
-            "Actual:",
-            scheduledAt.toUTCString()
-          );
           publishEntry(
             entry.uid,
             contentTypeUid,
@@ -163,7 +167,7 @@ const Selections = ({}: SelectionsProps) => {
             entry.locale,
             [country.locale],
             [...e.map((e: IEnvironmentConfig) => e.uid)],
-            scheduledAt.toISOString(),
+            scheduledAtString,
             withReferences,
             false,
             false
@@ -192,6 +196,7 @@ const Selections = ({}: SelectionsProps) => {
     date,
     time,
     summerTime,
+    now,
     publishEntry,
     withReferences,
   ]);
@@ -321,24 +326,27 @@ const Selections = ({}: SelectionsProps) => {
           </>
         )}
       </div>
-      <Button
-        buttonType="primary"
-        isFullWidth
-        disabled={
-          publishing ||
-          !groups ||
-          !environments ||
-          groups.filter((g: GroupConfiguration) => g.checked).length === 0 ||
-          environments.filter((e: IEnvironmentConfig) => e.checked).length === 0
-        }
-        isLoading={publishing}
-        loadingColor="#6c5ce7"
-        onClick={() => {
-          publishSelections();
-        }}
-      >
-        Publish
-      </Button>
+      <div className="pb-4">
+        <Button
+          buttonType="primary"
+          isFullWidth
+          disabled={
+            publishing ||
+            !groups ||
+            !environments ||
+            groups.filter((g: GroupConfiguration) => g.checked).length === 0 ||
+            environments.filter((e: IEnvironmentConfig) => e.checked).length ===
+              0
+          }
+          isLoading={publishing}
+          loadingColor="#6c5ce7"
+          onClick={() => {
+            publishSelections();
+          }}
+        >
+          Publish
+        </Button>
+      </div>
     </div>
   );
 };

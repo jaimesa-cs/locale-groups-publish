@@ -49,6 +49,7 @@ export interface IPublishInstruction {
   };
   scheduled_at?: string;
   publish_with_reference?: boolean;
+  skip_workflow_stage_check?: boolean;
 }
 
 export interface Release {
@@ -413,12 +414,20 @@ export const useCsOAuthApi = (): SdkResult => {
         ],
         locales: locales,
         environments: environments,
-        rules: {
-          approvals: approvals,
-        },
-        scheduled_at: schedule_at,
         publish_with_reference: withReferences,
       };
+      if (schedule_at && schedule_at.length > 0) {
+        data.scheduled_at = schedule_at;
+      }
+      if (approvals) {
+        data.rules = {
+          approvals: true,
+        };
+      }
+      if (skipWorkflow) {
+        data.skip_workflow_stage_check = true;
+      }
+
       debug("Publish Entry", data);
       return axios.executeRequest(
         `/v3/bulk/publish?skip_workflow_stage_check=${skipWorkflow}&approvals={${approvals}}`,

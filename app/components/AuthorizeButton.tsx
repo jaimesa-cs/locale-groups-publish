@@ -1,31 +1,25 @@
 "use client";
 
-import getContentstackOAuthUrl, {
-  windowProps,
-} from "../hooks/useContentstackOAuth";
-
+import { Button } from "@contentstack/venus-components";
 import { EXCHANGE_CODE_URL } from "../hooks/oauth/constants";
 import { KeyValueObj } from "../types";
 import React from "react";
 import axios from "../utils/axios";
 import { baseAppUrlSelector } from "../utils/oauth-utils";
-import dynamic from "next/dynamic";
+import getContentstackOAuthUrl from "../hooks/useContentstackOAuth";
 import { has } from "lodash";
+import pkceChallenge from "pkce-challenge";
 import { showError } from "../utils/notifications";
 import useAuth from "../hooks/oauth/useAuth";
-
-type TButton = typeof import("@contentstack/venus-components").Button;
-const Button: TButton = dynamic(
-  () => import("@contentstack/venus-components").then((mod) => mod.Button),
-  {
-    ssr: false,
-  }
-);
+import useRegion from "../hooks/useRegion";
+import { windowProps } from "../hooks/useContentstackOAuth";
 
 const AuthorizeButton = () => {
+  const { region, regionReady } = useRegion();
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
+    if (!region || !regionReady) return;
     const receiveAuthToken = (event: MessageEvent) => {
       if (event?.data?.message === "access_denied") {
         showError(event.data.message);
@@ -34,15 +28,13 @@ const AuthorizeButton = () => {
         return;
       }
       const { code } = event?.data;
-      const region = sessionStorage.getItem("region") || "NA";
-      const key = `code_verifier_${region}`;
-      const code_verifier = localStorage.getItem(key);
 
       axios(EXCHANGE_CODE_URL, {
         method: "POST",
         data: {
+          region,
           code,
-          code_verifier,
+          code_verifier: localStorage.getItem(`code_verifier_${region}`),
         },
       })
         .then((res) => {
@@ -61,24 +53,24 @@ const AuthorizeButton = () => {
     window.addEventListener("message", receiveAuthToken);
     return () => window.removeEventListener("message", receiveAuthToken);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [region]);
 
-  // React.useEffect(() => {
-  //   ContentstackAppSDK.init().then((appSdk) => {
-  //     appSdk.store.remove("test");
-  //   });
-  // }, []);
+  const authorizeUser = React.useCallback(() => {
+    if (region) {
+      let APP_BASE_URL = baseAppUrlSelector(region);
+      const code_verifier = pkceChallenge().code_verifier;
+      localStorage.setItem(`code_verifier_${region}`, code_verifier);
+      const url = getContentstackOAuthUrl(APP_BASE_URL, code_verifier);
 
-  const authorizeUser = async () => {
-    const region = sessionStorage.getItem("region") || "NA";
-    let APP_BASE_URL = baseAppUrlSelector(region);
-    const url = await getContentstackOAuthUrl(APP_BASE_URL);
-    const popup = window.open(url, "User Authentication", windowProps);
-    popup?.opener.postMessage(
-      { message: "Open window" },
-      process.env.NEXT_PUBLIC_CS_LAUNCH_HOST
-    );
-  };
+      const popup = window.open(url, "User Authentication", windowProps);
+      popup?.opener.postMessage(
+        { message: "Open window" },
+        process.env.NEXT_PUBLIC_CS_LAUNCH_HOST
+      );
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [region]);
 
   const { setAuth } = useAuth();
 

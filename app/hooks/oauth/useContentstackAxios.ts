@@ -5,6 +5,7 @@ import React from "react";
 import useAuth from "./useAuth";
 import { useBranch } from "../useBranch";
 import { useEffect } from "react";
+import useRegion from "../useRegion";
 
 interface UseContentstackAxiosResult {
   strategy: RepeatStrategy;
@@ -13,6 +14,7 @@ interface UseContentstackAxiosResult {
 
 const useContentstackAxios = (): UseContentstackAxiosResult => {
   const { branch } = useBranch();
+  const { region, regionReady } = useRegion();
   const { auth, setAuth, syncRefresh, isValid } = useAuth({
     from: "useContentstackAxios",
   });
@@ -20,7 +22,14 @@ const useContentstackAxios = (): UseContentstackAxiosResult => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   useEffect(() => {
-    if (!isValid || !branch?.api_key || !branch?.uid || !auth?.access_token) {
+    if (
+      !isValid ||
+      !branch?.api_key ||
+      !branch?.uid ||
+      !auth?.access_token ||
+      !region ||
+      !regionReady
+    ) {
       setReady(false);
       return;
     }
@@ -36,7 +45,7 @@ const useContentstackAxios = (): UseContentstackAxiosResult => {
           config.headers["authorization"] = `Bearer ${auth?.access_token}`;
           config.headers["cs-api-key"] = branch?.api_key || "";
           config.headers["branch"] = branch?.uid || "";
-          config.headers["region"] = sessionStorage.getItem("region") || "NA";
+          config.headers["region"] = region;
 
           if (debugEnabled) {
             console.log("Axios Request Intercept :: URL", config.url);

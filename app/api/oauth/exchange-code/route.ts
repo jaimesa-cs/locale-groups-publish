@@ -4,6 +4,7 @@ import { KeyValueObj } from "@/app/types";
 import { NextResponse } from "next/server";
 import { baseAppUrlSelector } from "@/app/utils/oauth-utils";
 import { encryptPayload } from "@/app/api/oauth/encryption";
+import pkceChallenge from "pkce-challenge";
 
 const enableEncryption = process.env.NEXT_PUBLIC_CS_OAUTH_ENCRYPTION === "true";
 
@@ -43,18 +44,18 @@ export async function POST(request: Request) {
     });
     let data = { ...(await response.json()), code_verifier: codeVerifier };
     const expires_at = now + data.expires_in * 1000;
+    data = { ...data, expires_at };
     //TODO:Testing auto refresh...
     // const expires_at = now + 20 * 1000;
 
     if (enableEncryption) {
       data = encryptPayload(data);
       debug("ENCRYPTED DATA", data);
+    } else {
+      debug("DATA", data);
     }
 
-    return NextResponse.json({
-      ...data,
-      expires_at,
-    });
+    return NextResponse.json(data);
   } catch (e) {
     console.log("Error exchanging the code", e);
     return new Response(

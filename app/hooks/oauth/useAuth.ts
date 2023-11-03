@@ -9,6 +9,8 @@ import { TOKEN_STORAGE_KEY } from "@/app/components/sidebar/models/models";
 import axios from "@/app/utils/axios";
 import { debug } from "@/app/utils";
 import useAppStorage from "../useAppStorage";
+import useContentstackOAuth from "../useContentstackOAuth";
+import useRegion from "../useRegion";
 
 export const AUTH_KEY = "csat";
 
@@ -19,7 +21,7 @@ interface UseAuthProps {
 
 const useAuth = (props?: UseAuthProps) => {
   const { autoRefresh = false, from } = props || {};
-
+  const { region, regionReady } = useRegion();
   const {
     value: auth,
     store: setAuth,
@@ -35,7 +37,8 @@ const useAuth = (props?: UseAuthProps) => {
     return (
       has(auth, "access_token") &&
       has(auth, "refresh_token") &&
-      has(auth, "expires_at")
+      has(auth, "expires_at") &&
+      has(auth, "code_verifier")
     );
   }, [auth]);
 
@@ -102,16 +105,13 @@ const useAuth = (props?: UseAuthProps) => {
   );
 
   const syncRefresh = React.useCallback(async () => {
-    if (!storeInProgress && canRefresh()) {
+    if (!storeInProgress && canRefresh() && regionReady) {
       try {
         setIsRefreshingToken(true);
 
-        const region = sessionStorage.getItem("region") || "NA";
-        const key = `code_verifier_${region}`;
-        const code_verifier = localStorage.getItem(key);
         const response = await axios.post(REFRESH_TOKEN_URL, {
           refreshToken: auth?.refresh_token,
-          code_verifier,
+          code_verifier: auth?.code_verifier,
         });
         setIsRefreshingToken(false);
         return response.data;
@@ -122,7 +122,7 @@ const useAuth = (props?: UseAuthProps) => {
       return undefined;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth?.refresh_token, canRefresh]);
+  }, [auth?.refresh_token, canRefresh, region]);
 
   //Auto refresh
   React.useEffect(() => {
