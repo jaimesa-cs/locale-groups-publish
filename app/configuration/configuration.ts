@@ -1,4 +1,4 @@
-export const MANGO_CONFIGURATION_NAME = "Mango Publishing Configuration";
+export const CONFIGURATION_NAME = "Publishing Configuration";
 
 export interface Configuration {
   name: string;
@@ -27,7 +27,7 @@ export interface CountryData {
 }
 
 const configuration: Configuration = {
-  name: MANGO_CONFIGURATION_NAME,
+  name: CONFIGURATION_NAME,
   groups: [
     {
       name: "Espana + Resto",

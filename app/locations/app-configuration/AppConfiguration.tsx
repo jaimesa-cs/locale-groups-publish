@@ -8,9 +8,9 @@ import {
 } from "@contentstack/venus-components";
 import { showError, showSuccess } from "../../utils/notifications";
 
+import { CONFIGURATION_NAME } from "@/app/configuration/configuration";
 import CodeEditor from "@uiw/react-textarea-code-editor/esm/index";
 import { IAppConfiguration } from "../../components/sidebar/models/models";
-import { MANGO_CONFIGURATION_NAME } from "@/app/configuration/configuration";
 import { MarketplaceAppProvider } from "@/app/common/providers/MarketplaceAppProvider";
 import React from "react";
 import { TypeAppSdkConfigState } from "../../types";
@@ -112,7 +112,7 @@ const AppConfiguration = () => {
   return (
     <MarketplaceAppProvider>
       <div className="p-10 ">
-        <Accordion title={MANGO_CONFIGURATION_NAME} renderExpanded noChevron>
+        <Accordion title={CONFIGURATION_NAME} renderExpanded noChevron>
           <div className="app-config ">
             <div className="app-config-container h-96">
               <div className="app-component-content p-4">
@@ -121,7 +121,7 @@ const AppConfiguration = () => {
                   htmlFor="advancedPublishingConfig"
                   error={!isValid}
                 >
-                  {MANGO_CONFIGURATION_NAME}
+                  {CONFIGURATION_NAME}
                 </FieldLabel>
 
                 {loading ? (
