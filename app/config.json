@@ -1,0 +1,518 @@
+{
+  "name": "Group Publishing Configuration",
+  "groups": [
+    {
+      "name": "Spain + Rest",
+      "countries": [
+        {
+          "name": "Spain",
+          "locale": "es-es",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 0,
+            "dif": "="
+          }
+        },
+        {
+          "name": "Albania",
+          "locale": "al",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 0,
+            "dif": "="
+          }
+        },
+        {
+          "name": "Algeria",
+          "locale": "dz",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Andorra",
+          "locale": "ad",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 0,
+            "dif": "="
+          }
+        },
+        {
+          "name": "Angola",
+          "locale": "ao",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Armenia",
+          "locale": "am",
+          "winterTime": {
+            "hours": 3,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 2,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Aruba",
+          "locale": "aw",
+          "winterTime": {
+            "hours": 5,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Australia",
+          "locale": "au",
+          "winterTime": {
+            "hours": 10,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 8,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Azerbaijan",
+          "locale": "az",
+          "winterTime": {
+            "hours": 3,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 2,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Bahrain",
+          "locale": "bh",
+          "winterTime": {
+            "hours": 2,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Belarus",
+          "locale": "by",
+          "winterTime": {
+            "hours": -2,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Belgium",
+          "locale": "be",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 0,
+            "dif": "="
+          }
+        },
+        {
+          "name": "Bening",
+          "locale": "bj",
+          "winterTime": {
+            "hours": 0,
+            "dif": "="
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Bermuda",
+          "locale": "bm",
+          "winterTime": {
+            "hours": 5,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 5,
+            "dif": "+"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inverted Season",
+      "countries": [
+        {
+          "name": "Argentina",
+          "locale": "ar",
+          "winterTime": {
+            "hours": 4,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 5,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Bolivia",
+          "locale": "bo",
+          "winterTime": {
+            "hours": 5,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Brazil",
+          "locale": "br",
+          "winterTime": {
+            "hours": 3,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 5,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Chile",
+          "locale": "cl",
+          "winterTime": {
+            "hours": 4,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 5,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Congo",
+          "locale": "cg",
+          "winterTime": {
+            "hours": 0,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 0,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Cuba",
+          "locale": "cu",
+          "winterTime": {
+            "hours": 5,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Honduras",
+          "locale": "hn",
+          "winterTime": {
+            "hours": 7,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 8,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Israel",
+          "locale": "il",
+          "winterTime": {
+            "hours": 1,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Lao",
+          "locale": "la",
+          "winterTime": {
+            "hours": 7,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Myanmar",
+          "locale": "bo",
+          "winterTime": {
+            "hours": 5,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 4.5,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Paraguay",
+          "locale": "py",
+          "winterTime": {
+            "hours": 4,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Peru",
+          "locale": "pe",
+          "winterTime": {
+            "hours": 6,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 7,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Uruguay",
+          "locale": "uy",
+          "winterTime": {
+            "hours": 4,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 5,
+            "dif": "+"
+          }
+        },
+        {
+          "name": "Venezuela",
+          "locale": "ve",
+          "winterTime": {
+            "hours": 5,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "+"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Russia & Kazajistan",
+      "countries": [
+        {
+          "name": "Kazakhstan",
+          "locale": "kz",
+          "winterTime": {
+            "hours": 5,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 4,
+            "dif": "-"
+          }
+        },
+        {
+          "name": "Russia",
+          "locale": "ru",
+          "winterTime": {
+            "hours": 2,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "-"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "United Arab Emirates",
+      "countries": [
+        {
+          "name": "United Arab Emirates",
+          "locale": "ae",
+          "winterTime": {
+            "hours": 3,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 2,
+            "dif": "-"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Saudi Arabia",
+      "countries": [
+        {
+          "name": "Saudi Arabia",
+          "locale": "sa",
+          "winterTime": {
+            "hours": 2,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 1,
+            "dif": "-"
+          }
+        }
+      ]
+    },
+    {
+      "name": "China",
+      "countries": [
+        {
+          "name": "China",
+          "locale": "cn",
+          "winterTime": {
+            "hours": 7,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "-"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Colombia",
+      "countries": [
+        {
+          "name": "Colombia",
+          "locale": "co",
+          "winterTime": {
+            "hours": 6,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 7,
+            "dif": "+"
+          }
+        }
+      ]
+    },
+    {
+      "name": "South Korea",
+      "countries": [
+        {
+          "name": "South Korea",
+          "locale": "kr",
+          "winterTime": {
+            "hours": 8,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 7,
+            "dif": "-"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Philippines",
+      "countries": [
+        {
+          "name": "Philippines",
+          "locale": "ph",
+          "winterTime": {
+            "hours": 7,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "-"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mexico",
+      "countries": [
+        {
+          "name": "Mexico",
+          "locale": "mx",
+          "winterTime": {
+            "hours": 7,
+            "dif": "+"
+          },
+          "summerTime": {
+            "hours": 7,
+            "dif": "+"
+          }
+        }
+      ]
+    },
+    {
+      "name": "USA",
+      "countries": [
+        {
+          "name": "USA",
+          "locale": "us",
+          "winterTime": {
+            "hours": 8,
+            "dif": "-"
+          },
+          "summerTime": {
+            "hours": 6,
+            "dif": "-"
+          }
+        }
+      ]
+    }
+  ]
+}
