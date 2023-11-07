@@ -1,6 +1,6 @@
 "use client";
 
-import Configuration from "./Configuration";
+import Configuration from "./PublishingModal";
 import DefaultLoading from "@/app/components/DefaultLoading";
 import React from "react";
 import SecurityOptions from "./SecurityOptions";

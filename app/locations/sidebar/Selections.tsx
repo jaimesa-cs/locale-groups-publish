@@ -19,6 +19,7 @@ import {
   GroupConfiguration,
   PeriodTime,
 } from "@/app/configuration/configuration";
+import { debug, debugEnabled } from "@/app/utils";
 import { showError, showMessage, showSuccess } from "@/app/utils/notifications";
 import useSpanishDate, {
   convertToSpanishDate,
@@ -30,7 +31,7 @@ import Environments from "@/app/components/sidebar/Environments";
 import { IEnvironmentConfig } from "@/app/components/sidebar/models/models";
 import React from "react";
 import SpanishDateInfo from "./SpanishDateInfo";
-import { debug } from "@/app/utils";
+import { log } from "console";
 import { useCsOAuthApi } from "@/app/components/sidebar/ContentstackOAuthApi";
 import { useEntryChange } from "@/app/hooks/useEntryChange";
 import useUserSelections from "@/app/hooks/useUserSelections";
@@ -39,21 +40,27 @@ interface SelectionsProps {
   closeModal: () => void;
 }
 
+interface DateInfo {
+  date: string;
+  time: string;
+  summerTime: boolean;
+}
+
 const Selections = ({}: SelectionsProps) => {
   const [publishing, setPublishing] = React.useState<boolean>(false); //TODO: use this to show a loading indicator
   const { isDst, spanishDate } = useSpanishDate();
   const [now, setNow] = React.useState<boolean>(true);
   const [withReferences, setWithReferences] = React.useState<boolean>(true);
-  const [summerTime, setSummerTime] = React.useState<boolean>(isDst);
-
-  const [date, setDate] = React.useState<string>(
-    `${spanishDate.getFullYear()}/${
+  const [spanishScheduledDateString, setSpanishScheduledDateString] =
+    React.useState<string>("");
+  const [logOnly, setLogOnly] = React.useState<boolean>(false);
+  const [dateInfo, setDateInfo] = React.useState<DateInfo>({
+    date: `${spanishDate.getFullYear()}/${
       spanishDate.getMonth() + 1
-    }/${spanishDate.getDate()}`
-  );
-  const [time, setTime] = React.useState<string>(
-    spanishDate.toTimeString().split(" ")[0]
-  );
+    }/${spanishDate.getDate()}`,
+    time: spanishDate.toTimeString().split(" ")[0],
+    summerTime: isDst,
+  } as DateInfo);
 
   const { environments, groups } = useUserSelections();
   const { publishEntry } = useCsOAuthApi();
@@ -64,9 +71,14 @@ const Selections = ({}: SelectionsProps) => {
       component: (props: any) => (
         <div className="grid h-full place-items-center p-10">
           <DatePicker
-            initialDate={date}
+            initialDate={dateInfo.date}
             onChange={(e: any) => {
-              setDate(e.replace(/-/g, "/"));
+              setDateInfo((di) => {
+                return {
+                  ...di,
+                  date: e.replace(/-/g, "/"),
+                };
+              });
             }}
             closeModal={() => {
               props.closeModal();
@@ -84,9 +96,15 @@ const Selections = ({}: SelectionsProps) => {
       component: (props: any) => (
         <div className="grid h-full place-items-center p-10">
           <TimePicker2
-            initialDate={`${time}`}
+            initialDate={`${dateInfo.time}`}
             onDone={(e: string) => {
-              setTime(e.split("-")[0]);
+              setDateInfo((di) => {
+                return {
+                  ...di,
+                  time: e.split("-")[0],
+                };
+              });
+
               props.closeModal();
             }}
             onCancel={() => {
@@ -108,22 +126,20 @@ const Selections = ({}: SelectionsProps) => {
       },
     });
   };
-  const getSpanishScheduledDateString = React.useCallback(() => {
-    const d = convertToSpanishDate(date, time, summerTime);
-    return `${d.toLocaleDateString("es-ES")}, ${time}`;
-  }, [date, time, summerTime]);
 
   const publishSelections = React.useCallback(() => {
     if (groups && environments && entry && contentTypeUid) {
       const g = groups.filter((g: GroupConfiguration) => g.checked);
       const e = environments.filter((e: IEnvironmentConfig) => e.checked);
       const userSelectedScheduleDate = convertToSpanishDate(
-        date,
-        time,
-        summerTime
+        dateInfo.date,
+        dateInfo.time,
+        dateInfo.summerTime
       );
       debug(
-        `User selected schedule date DST[${summerTime}] >> ${userSelectedScheduleDate.toLocaleDateString()}`
+        `User selected schedule date DST[${
+          dateInfo.summerTime
+        }] >> ${userSelectedScheduleDate.toLocaleDateString()}`
       );
       const errors: any[] = [];
 
@@ -134,7 +150,7 @@ const Selections = ({}: SelectionsProps) => {
           const country: CountryData = countries[j];
           let scheduledAtString = "";
           if (!now) {
-            const period: PeriodTime = summerTime
+            const period: PeriodTime = dateInfo.summerTime
               ? country.summerTime
               : country.winterTime;
             const scheduledAt = new Date(userSelectedScheduleDate);
@@ -149,38 +165,47 @@ const Selections = ({}: SelectionsProps) => {
               );
             }
 
-            debug(
-              "Country: ",
-              country.name,
-              ", Period: ",
-              `${period.dif}${period.hours}`,
-              "Actual:",
-              scheduledAt.toISOString()
-            );
+            if (debugEnabled || logOnly) {
+              console.log(
+                "Country: ",
+                country.name,
+                ", Period: ",
+                `${period.dif}${period.hours}`,
+                "Actual (UTC):",
+                scheduledAt.toISOString()
+              );
+            }
             scheduledAtString = scheduledAt.toISOString();
           }
 
-          publishEntry(
-            entry.uid,
-            contentTypeUid,
-            entry._version,
-            entry.locale,
-            [country.locale],
-            [...e.map((e: IEnvironmentConfig) => e.uid)],
-            scheduledAtString,
-            withReferences,
-            false,
-            false
-          )
-            .then((response) => {
-              debug("Response", response);
-            })
-            .catch((error) => {
-              errors.push(error);
-            });
+          if (!logOnly) {
+            publishEntry(
+              entry.uid,
+              contentTypeUid,
+              entry._version,
+              entry.locale,
+              [country.locale],
+              [...e.map((e: IEnvironmentConfig) => e.uid)],
+              scheduledAtString,
+              withReferences,
+              false,
+              false
+            )
+              .then((response) => {
+                debug("Response", response);
+              })
+              .catch((error) => {
+                errors.push(error);
+              })
+              .finally(() => {
+                setPublishing(false);
+              });
+          } else {
+            setPublishing(false);
+          }
         }
       }
-      setPublishing(false);
+
       if (errors.length > 0) {
         showError("Errors while scheduling entries for publishing");
         console.log("Errors", errors);
@@ -193,20 +218,37 @@ const Selections = ({}: SelectionsProps) => {
     environments,
     entry,
     contentTypeUid,
-    date,
-    time,
-    summerTime,
+    dateInfo.date,
+    dateInfo.time,
+    dateInfo.summerTime,
     now,
     publishEntry,
     withReferences,
+    logOnly,
   ]);
+
+  React.useEffect(() => {
+    console.log("DateInfo", dateInfo);
+    let d: Date;
+    setDateInfo((di) => {
+      d = convertToSpanishDate(
+        dateInfo.date,
+        dateInfo.time,
+        dateInfo.summerTime
+      );
+      setSpanishScheduledDateString(
+        `${d.toLocaleDateString("es-ES")}, ${dateInfo.time}`
+      );
+      return di;
+    });
+  }, [dateInfo]);
 
   return publishing ? (
     <DefaultLoading title="Publishing..." />
   ) : (
     <div className="flex flex-col h-full justify-between">
       <Accordion title={`Country Groups`} renderExpanded>
-        <CountryGroups summerTime={summerTime} />
+        <CountryGroups summerTime={dateInfo.summerTime} />
       </Accordion>
       <Accordion title={`Environments`} renderExpanded>
         <Environments />
@@ -251,14 +293,30 @@ const Selections = ({}: SelectionsProps) => {
           <div className="pt-3 pl-5">
             <ToggleSwitch
               id="checked"
-              checked={summerTime}
+              checked={dateInfo.summerTime}
               label="Summer Time"
               onClick={() => {
-                setSummerTime((st) => !st);
+                setDateInfo((di) => {
+                  return {
+                    ...di,
+                    summerTime: !di.summerTime,
+                  };
+                });
+              }}
+            />
+          </div>
+          <div className="pt-3 pl-5">
+            <ToggleSwitch
+              id="checked"
+              checked={logOnly}
+              label="Log Only"
+              onClick={() => {
+                setLogOnly((lo) => !lo);
               }}
             />
           </div>
         </div>
+
         {!now && (
           <div className="flex flex-row pl-2 gap-2">
             <div>
@@ -267,7 +325,7 @@ const Selections = ({}: SelectionsProps) => {
                 name="date"
                 // disabled={true}
                 placeholder=""
-                value={date}
+                value={dateInfo.date}
                 onChange={(e: any) => {
                   console.log(e.target.value);
                 }}
@@ -280,7 +338,7 @@ const Selections = ({}: SelectionsProps) => {
               <TextInput
                 name="time"
                 placeholder=""
-                value={time}
+                value={dateInfo.time}
                 onChange={(e: any) => {
                   console.log(e.target.value);
                 }}
@@ -295,7 +353,7 @@ const Selections = ({}: SelectionsProps) => {
         {!now && (
           <>
             <div className="pb-2">
-              <SpanishDateInfo />
+              <SpanishDateInfo forceDst={dateInfo.summerTime} />
             </div>
 
             <div className="pb-2">
@@ -304,7 +362,7 @@ const Selections = ({}: SelectionsProps) => {
                   <div>
                     <p>
                       Selected Publishing Date in Spain: <br />
-                      <strong>{getSpanishScheduledDateString()}</strong>
+                      <strong>{spanishScheduledDateString}</strong>
                     </p>
                   </div>
                 }
@@ -316,7 +374,8 @@ const Selections = ({}: SelectionsProps) => {
                 content={
                   <div>
                     <p>
-                      Summer Time <br /> <strong>{isDst ? `Yes` : `No`}</strong>
+                      Summer Time <br />{" "}
+                      <strong>{dateInfo.summerTime ? `Yes` : `No`}</strong>
                     </p>
                   </div>
                 }

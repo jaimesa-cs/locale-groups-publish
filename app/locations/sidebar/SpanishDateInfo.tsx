@@ -5,9 +5,14 @@ import useSpanishDate from "@/app/hooks/useSpanishDate";
 interface SpanishDateInfoProps {
   showDst?: boolean;
   showUtc?: boolean;
+  forceDst?: boolean;
 }
-const SpanishDateInfo = ({ showDst, showUtc }: SpanishDateInfoProps) => {
-  const { spanishDate, spanishDateString, isDst } = useSpanishDate();
+const SpanishDateInfo = ({
+  showDst,
+  showUtc,
+  forceDst,
+}: SpanishDateInfoProps) => {
+  const { spanishDate, spanishDateString, isDst } = useSpanishDate(forceDst);
   return (
     <Info
       content={

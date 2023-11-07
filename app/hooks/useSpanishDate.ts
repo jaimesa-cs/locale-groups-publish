@@ -1,9 +1,10 @@
 import React from "react";
 import { isDstObserved } from "../utils";
-export const calcSpanishTime = (date?: Date) => {
+export const calcSpanishTime = (forceDst?: boolean, date?: Date) => {
   // create Date object for current location
   const d = date ? new Date(date) : new Date();
-  const offset = isDstObserved(d) ? 1 : 2;
+  const dst = forceDst !== undefined ? forceDst : isDstObserved(d);
+  const offset = dst ? 0 : 1;
 
   // convert to msec
   // add local time zone offset
@@ -40,29 +41,32 @@ export const convertToSpanishDate = (
   //   console.log("year", year);
 
   //2020-04-13T00:00:00.000+08:00
-  const diff = isDst ? 1 : 2;
+  const diff = isDst ? 0 : 1;
   const dateString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000+0${diff}:00`;
-
   return new Date(dateString);
 };
 
-const useSpanishDate = () => {
-  const [spanishDate, setSpanishDate] = React.useState<Date>(calcSpanishTime());
+const useSpanishDate = (forceDst?: boolean) => {
+  const [spanishDate, setSpanishDate] = React.useState<Date>(
+    calcSpanishTime(forceDst)
+  );
   const [spanishDateString, setSpanishDateString] = React.useState<string>(
     spanishDate.toLocaleString("es-ES", { hour12: false })
   );
-  const [isDst, setIsDst] = React.useState<boolean>(isDstObserved(spanishDate));
+  const [isDst, setIsDst] = React.useState<boolean>(
+    forceDst !== undefined ? forceDst : isDstObserved(spanishDate)
+  );
 
   React.useEffect(() => {
     const interval = setInterval(() => {
-      const d = calcSpanishTime();
+      const d = calcSpanishTime(forceDst);
       setSpanishDate(d);
       setSpanishDateString(d.toLocaleString("es-ES", { hour12: false }));
-      setIsDst(isDstObserved(d));
+      setIsDst(forceDst !== undefined ? forceDst : isDstObserved(d));
     }, 1000);
     return () => clearInterval(interval); // This represents the unmount function, in which you need to clear your interval to prevent memory leaks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [forceDst]);
 
   return {
     spanishDate,
