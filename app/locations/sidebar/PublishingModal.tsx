@@ -19,7 +19,7 @@ const Configuration = ({}: ConfigurationProps) => {
           icon={"Publish"}
           onClick={() => {
             cbModal({
-              component: (props: any) => <ConfigurationModal {...props} />,
+              component: (props: any) => <PublishingModal {...props} />,
               modalProps: {
                 size: "customSize",
               },
@@ -38,7 +38,7 @@ const Configuration = ({}: ConfigurationProps) => {
 
 interface ConfigurationModalProps extends CsModalProps {}
 
-export const ConfigurationModal = ({ closeModal }: ConfigurationModalProps) => {
+export const PublishingModal = ({ closeModal }: ConfigurationModalProps) => {
   return (
     <MarketplaceAppProvider>
       <div className="h-full">

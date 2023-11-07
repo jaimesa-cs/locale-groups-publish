@@ -316,7 +316,8 @@ const Selections = ({}: SelectionsProps) => {
                 content={
                   <div>
                     <p>
-                      Summer Time <br /> <strong>{isDst ? `Yes` : `No`}</strong>
+                      Summer Time <br />{" "}
+                      <strong>{summerTime ? `Yes` : `No`}</strong>
                     </p>
                   </div>
                 }

@@ -3,7 +3,7 @@ import { isDstObserved } from "../utils";
 export const calcSpanishTime = (date?: Date) => {
   // create Date object for current location
   const d = date ? new Date(date) : new Date();
-  const offset = isDstObserved(d) ? 1 : 2;
+  const offset = isDstObserved(d) ? 2 : 1;
 
   // convert to msec
   // add local time zone offset
@@ -40,7 +40,7 @@ export const convertToSpanishDate = (
   //   console.log("year", year);
 
   //2020-04-13T00:00:00.000+08:00
-  const diff = isDst ? 1 : 2;
+  const diff = isDst ? 2 : 1;
   const dateString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000+0${diff}:00`;
 
   return new Date(dateString);
