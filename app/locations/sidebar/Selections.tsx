@@ -19,6 +19,7 @@ import {
   GroupConfiguration,
   PeriodTime,
 } from "@/app/configuration/configuration";
+import { debug, debugEnabled } from "@/app/utils";
 import { showError, showMessage, showSuccess } from "@/app/utils/notifications";
 import useSpanishDate, {
   convertToSpanishDate,
@@ -30,7 +31,7 @@ import Environments from "@/app/components/sidebar/Environments";
 import { IEnvironmentConfig } from "@/app/components/sidebar/models/models";
 import React from "react";
 import SpanishDateInfo from "./SpanishDateInfo";
-import { debug } from "@/app/utils";
+import { log } from "console";
 import { useCsOAuthApi } from "@/app/components/sidebar/ContentstackOAuthApi";
 import { useEntryChange } from "@/app/hooks/useEntryChange";
 import useUserSelections from "@/app/hooks/useUserSelections";
@@ -52,7 +53,7 @@ const Selections = ({}: SelectionsProps) => {
   const [withReferences, setWithReferences] = React.useState<boolean>(true);
   const [spanishScheduledDateString, setSpanishScheduledDateString] =
     React.useState<string>("");
-
+  const [logOnly, setLogOnly] = React.useState<boolean>(false);
   const [dateInfo, setDateInfo] = React.useState<DateInfo>({
     date: `${spanishDate.getFullYear()}/${
       spanishDate.getMonth() + 1
@@ -164,38 +165,47 @@ const Selections = ({}: SelectionsProps) => {
               );
             }
 
-            debug(
-              "Country: ",
-              country.name,
-              ", Period: ",
-              `${period.dif}${period.hours}`,
-              "Actual:",
-              scheduledAt.toISOString()
-            );
+            if (debugEnabled || logOnly) {
+              console.log(
+                "Country: ",
+                country.name,
+                ", Period: ",
+                `${period.dif}${period.hours}`,
+                "Actual (UTC):",
+                scheduledAt.toISOString()
+              );
+            }
             scheduledAtString = scheduledAt.toISOString();
           }
 
-          publishEntry(
-            entry.uid,
-            contentTypeUid,
-            entry._version,
-            entry.locale,
-            [country.locale],
-            [...e.map((e: IEnvironmentConfig) => e.uid)],
-            scheduledAtString,
-            withReferences,
-            false,
-            false
-          )
-            .then((response) => {
-              debug("Response", response);
-            })
-            .catch((error) => {
-              errors.push(error);
-            });
+          if (!logOnly) {
+            publishEntry(
+              entry.uid,
+              contentTypeUid,
+              entry._version,
+              entry.locale,
+              [country.locale],
+              [...e.map((e: IEnvironmentConfig) => e.uid)],
+              scheduledAtString,
+              withReferences,
+              false,
+              false
+            )
+              .then((response) => {
+                debug("Response", response);
+              })
+              .catch((error) => {
+                errors.push(error);
+              })
+              .finally(() => {
+                setPublishing(false);
+              });
+          } else {
+            setPublishing(false);
+          }
         }
       }
-      setPublishing(false);
+
       if (errors.length > 0) {
         showError("Errors while scheduling entries for publishing");
         console.log("Errors", errors);
@@ -214,6 +224,7 @@ const Selections = ({}: SelectionsProps) => {
     now,
     publishEntry,
     withReferences,
+    logOnly,
   ]);
 
   React.useEffect(() => {
@@ -294,7 +305,18 @@ const Selections = ({}: SelectionsProps) => {
               }}
             />
           </div>
+          <div className="pt-3 pl-5">
+            <ToggleSwitch
+              id="checked"
+              checked={logOnly}
+              label="Log Only"
+              onClick={() => {
+                setLogOnly((lo) => !lo);
+              }}
+            />
+          </div>
         </div>
+
         {!now && (
           <div className="flex flex-row pl-2 gap-2">
             <div>
