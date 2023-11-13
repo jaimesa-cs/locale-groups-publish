@@ -1,7 +1,7 @@
 "use client";
 
-import Configuration from "./PublishingModal";
 import DefaultLoading from "@/app/components/DefaultLoading";
+import GroupPublishing from "./GroupPublishing";
 import React from "react";
 import SecurityOptions from "./SecurityOptions";
 import useAuth from "@/app/hooks/oauth/useAuth";
@@ -29,7 +29,7 @@ const ReferencesManagement = () => {
         <DefaultLoading title={`${canRefresh ? "Authorizing..." : ""}`} />
       ) : (
         <div className="gap-y-2">
-          <Configuration />
+          <GroupPublishing />
           <SecurityOptions />
         </div>
       )}

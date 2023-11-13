@@ -88,8 +88,8 @@ function CountryGroups({ summerTime }: CountryGroupsProps) {
   const getPeriodLabel = React.useCallback(
     (country: CountryData) => {
       return summerTime
-        ? `${country.name} (${country.summerTime.dif}${country.summerTime.hours})`
-        : `${country.name} (${country.winterTime.dif}${country.winterTime.hours})`;
+        ? `${country.name} [${country.locale}] (${country.summerTime.dif}${country.summerTime.hours})`
+        : `${country.name} [${country.locale}] (${country.winterTime.dif}${country.winterTime.hours})`;
     },
     [summerTime]
   );

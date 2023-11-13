@@ -8,37 +8,9 @@ import React from "react";
 import Selections from "./Selections";
 import SpanishDateInfo from "./SpanishDateInfo";
 
-export interface ConfigurationProps {}
-const Configuration = ({}: ConfigurationProps) => {
-  return (
-    <div className="grid grid-cols-1 p-2 gap-2">
-      <div>
-        <Button
-          isFullWidth
-          buttonType="secondary"
-          icon={"Publish"}
-          onClick={() => {
-            cbModal({
-              component: (props: any) => <PublishingModal {...props} />,
-              modalProps: {
-                size: "customSize",
-              },
-            });
-          }}
-        >
-          Group Publishing
-        </Button>
-      </div>
-      <div>
-        <SpanishDateInfo />
-      </div>
-    </div>
-  );
-};
+interface PublishingModalProps extends CsModalProps {}
 
-interface ConfigurationModalProps extends CsModalProps {}
-
-export const PublishingModal = ({ closeModal }: ConfigurationModalProps) => {
+export const PublishingModal = ({ closeModal }: PublishingModalProps) => {
   return (
     <MarketplaceAppProvider>
       <div className="h-full">
@@ -53,4 +25,4 @@ export const PublishingModal = ({ closeModal }: ConfigurationModalProps) => {
     </MarketplaceAppProvider>
   );
 };
-export default Configuration;
+export default PublishingModal;

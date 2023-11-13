@@ -1020,6 +1020,11 @@
   resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.195.tgz"
   integrity sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==
 
+"@types/luxon@^3.3.4":
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.3.4.tgz#cda5c0709a0c4c01ba059c40e62d76610479049a"
+  integrity sha512-H9OXxv4EzJwE75aTPKpiGXJq+y4LFxjpsdgKwSmr503P5DkWc3AG7VAFYrFNVvqemT5DfgZJV9itYhqBHSGujA==
+
 "@types/node@20.3.1":
   version "20.3.1"
   resolved "https://registry.npmjs.org/@types/node/-/node-20.3.1.tgz"
@@ -3333,6 +3338,11 @@ lucide-react@^0.252.0:
   version "0.252.0"
   resolved "https://registry.yarnpkg.com/lucide-react/-/lucide-react-0.252.0.tgz#4fd8829c95456a9de6a3377b395dd412bf8345d7"
   integrity sha512-98hUdm23F3YlC3UN4mzv1FAsWr81YYdxF31cYhm19c51FwOph4dn5B4NjKp45UXBiR1Xx+cKrdmSIZX0ldS8zw==
+
+luxon@^3.4.4:
+  version "3.4.4"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.4.4.tgz#cf20dc27dc532ba41a169c43fdcc0063601577af"
+  integrity sha512-zobTr7akeGHnv7eBOXcRgMeCP6+uyYsczwmeRCauvpvaAltgNyTbLH/+VaEAPUeWBT+1GuNmz4wC/6jtQzbbVA==
 
 material-colors@^1.2.1:
   version "1.2.6"
