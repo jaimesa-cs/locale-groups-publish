@@ -1,18 +1,15 @@
 import { Icon, Info } from "@contentstack/venus-components";
 
-import useSpanishDate from "@/app/hooks/useSpanishDate";
+import React from "react";
+import useLocaleDate from "@/app/hooks/useLocaleDate";
 
-interface SpanishDateInfoProps {
-  showDst?: boolean;
-  showUtc?: boolean;
-  forceDst?: boolean;
-}
-const SpanishDateInfo = ({
-  showDst,
-  showUtc,
-  forceDst,
-}: SpanishDateInfoProps) => {
-  const { spanishDate, spanishDateString, isDst } = useSpanishDate(forceDst);
+interface SpanishDateInfoProps {}
+
+const SpanishDateInfo = ({}: SpanishDateInfoProps) => {
+  const { localeDateString, isDst } = useLocaleDate({
+    zone: process.env.NEXT_PUBLIC_TIMEZONE ?? "Europe/Madrid",
+    fmt: process.env.NEXT_PUBLIC_DATE_FORMAT ?? "dd/MM/yyyy HH:mm:ss",
+  });
   return (
     <Info
       content={
@@ -20,16 +17,11 @@ const SpanishDateInfo = ({
           <p>
             The local time in Spain is: <br />
             <strong>
-              {spanishDateString} <br />
-              {showDst ? `${isDst ? `Summer Time` : `No Summer Time`}` : ""}
+              {localeDateString}
+              {isDst && <sup className="text-[8px]"> DST</sup>}
+              <br />
             </strong>
           </p>
-          {showUtc && (
-            <>
-              <br />
-              <p>{spanishDate.toUTCString()}</p>
-            </>
-          )}
         </div>
       }
       icon={<Icon icon="InfoCircleWhite" />}

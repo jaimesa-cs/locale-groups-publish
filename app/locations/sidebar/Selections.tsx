@@ -21,9 +21,6 @@ import {
 } from "@/app/configuration/configuration";
 import { debug, debugEnabled } from "@/app/utils";
 import { showError, showMessage, showSuccess } from "@/app/utils/notifications";
-import useSpanishDate, {
-  convertToSpanishDate,
-} from "@/app/hooks/useSpanishDate";
 
 import CountryGroups from "@/app/components/sidebar/CountryGroups";
 import DefaultLoading from "@/app/components/DefaultLoading";
@@ -31,9 +28,9 @@ import Environments from "@/app/components/sidebar/Environments";
 import { IEnvironmentConfig } from "@/app/components/sidebar/models/models";
 import React from "react";
 import SpanishDateInfo from "./SpanishDateInfo";
-import { log } from "console";
 import { useCsOAuthApi } from "@/app/components/sidebar/ContentstackOAuthApi";
 import { useEntryChange } from "@/app/hooks/useEntryChange";
+import useLocaleDate from "@/app/hooks/useLocaleDate";
 import useUserSelections from "@/app/hooks/useUserSelections";
 
 interface SelectionsProps {
@@ -48,17 +45,18 @@ interface DateInfo {
 
 const Selections = ({}: SelectionsProps) => {
   const [publishing, setPublishing] = React.useState<boolean>(false); //TODO: use this to show a loading indicator
-  const { isDst, spanishDate } = useSpanishDate();
+  const { isDst, date, convertToLocaleDate } = useLocaleDate({
+    zone: process.env.NEXT_PUBLIC_TIMEZONE ?? "Europe/Madrid",
+    fmt: process.env.NEXT_PUBLIC_DATE_FORMAT ?? "dd/MM/yyyy HH:mm:ss",
+  });
   const [now, setNow] = React.useState<boolean>(true);
   const [withReferences, setWithReferences] = React.useState<boolean>(true);
-  const [spanishScheduledDateString, setSpanishScheduledDateString] =
-    React.useState<string>("");
+
   const [logOnly, setLogOnly] = React.useState<boolean>(false);
+
   const [dateInfo, setDateInfo] = React.useState<DateInfo>({
-    date: `${spanishDate.getFullYear()}/${
-      spanishDate.getMonth() + 1
-    }/${spanishDate.getDate()}`,
-    time: spanishDate.toTimeString().split(" ")[0],
+    date: `${date.get("year")}/${date.get("month")}/${date.get("day")}`,
+    time: date.toFormat("HH:mm:ss"),
     summerTime: isDst,
   } as DateInfo);
 
@@ -131,16 +129,11 @@ const Selections = ({}: SelectionsProps) => {
     if (groups && environments && entry && contentTypeUid) {
       const g = groups.filter((g: GroupConfiguration) => g.checked);
       const e = environments.filter((e: IEnvironmentConfig) => e.checked);
-      const userSelectedScheduleDate = convertToSpanishDate(
+      const userSelectedScheduleDate = convertToLocaleDate(
         dateInfo.date,
-        dateInfo.time,
-        dateInfo.summerTime
+        dateInfo.time
       );
-      debug(
-        `User selected schedule date DST[${
-          dateInfo.summerTime
-        }] >> ${userSelectedScheduleDate.toLocaleDateString()}`
-      );
+
       const errors: any[] = [];
 
       for (let i = 0; i < g.length; i++) {
@@ -153,6 +146,7 @@ const Selections = ({}: SelectionsProps) => {
             const period: PeriodTime = dateInfo.summerTime
               ? country.summerTime
               : country.winterTime;
+
             const scheduledAt = new Date(userSelectedScheduleDate);
 
             if (period.dif === "-") {
@@ -171,7 +165,9 @@ const Selections = ({}: SelectionsProps) => {
                 country.name,
                 ", Period: ",
                 `${period.dif}${period.hours}`,
-                "Actual (UTC):",
+                "Selected (ISO)",
+                userSelectedScheduleDate.toISOString(),
+                "Actual (ISO):",
                 scheduledAt.toISOString()
               );
             }
@@ -213,6 +209,7 @@ const Selections = ({}: SelectionsProps) => {
         showSuccess("Entries successfully scheduled for publishing");
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     groups,
     environments,
@@ -222,26 +219,10 @@ const Selections = ({}: SelectionsProps) => {
     dateInfo.time,
     dateInfo.summerTime,
     now,
+    logOnly,
     publishEntry,
     withReferences,
-    logOnly,
   ]);
-
-  React.useEffect(() => {
-    console.log("DateInfo", dateInfo);
-    let d: Date;
-    setDateInfo((di) => {
-      d = convertToSpanishDate(
-        dateInfo.date,
-        dateInfo.time,
-        dateInfo.summerTime
-      );
-      setSpanishScheduledDateString(
-        `${d.toLocaleDateString("es-ES")}, ${dateInfo.time}`
-      );
-      return di;
-    });
-  }, [dateInfo]);
 
   return publishing ? (
     <DefaultLoading title="Publishing..." />
@@ -294,7 +275,7 @@ const Selections = ({}: SelectionsProps) => {
             <ToggleSwitch
               id="checked"
               checked={dateInfo.summerTime}
-              label="Summer Time"
+              label="Use Summer Time"
               onClick={() => {
                 setDateInfo((di) => {
                   return {
@@ -349,11 +330,11 @@ const Selections = ({}: SelectionsProps) => {
           </div>
         )}
       </Accordion>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {!now && (
           <>
             <div className="pb-2">
-              <SpanishDateInfo forceDst={dateInfo.summerTime} />
+              <SpanishDateInfo />
             </div>
 
             <div className="pb-2">
@@ -362,20 +343,9 @@ const Selections = ({}: SelectionsProps) => {
                   <div>
                     <p>
                       Selected Publishing Date in Spain: <br />
-                      <strong>{spanishScheduledDateString}</strong>
-                    </p>
-                  </div>
-                }
-                icon={<Icon icon="InfoCircleWhite" />}
-              />
-            </div>
-            <div className="pb-2">
-              <Info
-                content={
-                  <div>
-                    <p>
-                      Summer Time <br />{" "}
-                      <strong>{dateInfo.summerTime ? `Yes` : `No`}</strong>
+                      <strong>
+                        {dateInfo.date} {dateInfo.time}
+                      </strong>
                     </p>
                   </div>
                 }
