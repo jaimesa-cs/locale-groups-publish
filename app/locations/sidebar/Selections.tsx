@@ -23,6 +23,7 @@ import { debug, debugEnabled } from "@/app/utils";
 import { showError, showMessage, showSuccess } from "@/app/utils/notifications";
 
 import CountryGroups from "@/app/components/sidebar/CountryGroups";
+import { DateTime } from "luxon";
 import DefaultLoading from "@/app/components/DefaultLoading";
 import Environments from "@/app/components/sidebar/Environments";
 import { IEnvironmentConfig } from "@/app/components/sidebar/models/models";
@@ -45,7 +46,7 @@ interface DateInfo {
 
 const Selections = ({}: SelectionsProps) => {
   const [publishing, setPublishing] = React.useState<boolean>(false); //TODO: use this to show a loading indicator
-  const { isDst, date, convertToLocaleDate } = useLocaleDate({
+  const { isDst, date, convertToLocaleDate, zone, fmt } = useLocaleDate({
     zone: process.env.NEXT_PUBLIC_TIMEZONE ?? "Europe/Madrid",
     fmt: process.env.NEXT_PUBLIC_DATE_FORMAT ?? "dd/MM/yyyy HH:mm:ss",
   });
@@ -55,7 +56,7 @@ const Selections = ({}: SelectionsProps) => {
   const [logOnly, setLogOnly] = React.useState<boolean>(false);
 
   const [dateInfo, setDateInfo] = React.useState<DateInfo>({
-    date: `${date.get("year")}/${date.get("month")}/${date.get("day")}`,
+    date: date.toFormat("yyyy/MM/dd"),
     time: date.toFormat("HH:mm:ss"),
     summerTime: isDst,
   } as DateInfo);
@@ -330,13 +331,66 @@ const Selections = ({}: SelectionsProps) => {
           </div>
         )}
       </Accordion>
+
+      {!now && (
+        <Accordion title="Schedule Details">
+          {groups
+            ?.filter((g: GroupConfiguration) => g.checked)
+            .map((group, idx) => {
+              const userSelectedScheduleDate = convertToLocaleDate(
+                dateInfo.date,
+                dateInfo.time
+              );
+              return (
+                <Accordion title={group.name} key={`group_${idx}`}>
+                  <div>
+                    {group.countries
+                      .filter((c) => c.checked)
+                      .map((country) => {
+                        const period: PeriodTime = dateInfo.summerTime
+                          ? country.summerTime
+                          : country.winterTime;
+
+                        const scheduledAt = new Date(userSelectedScheduleDate);
+
+                        if (period.dif === "-") {
+                          scheduledAt.setTime(
+                            scheduledAt.getTime() -
+                              period.hours * 60 * 60 * 1000
+                          );
+                        } else {
+                          scheduledAt.setTime(
+                            scheduledAt.getTime() +
+                              period.hours * 60 * 60 * 1000
+                          );
+                        }
+
+                        let scheduledAtString = scheduledAt.toISOString();
+                        return (
+                          <div
+                            className="p-2"
+                            key={`country_${country.locale}`}
+                          >
+                            <strong>{country.name}</strong>:{" "}
+                            {DateTime.fromISO(scheduledAtString, {
+                              zone: zone,
+                            }).toFormat(fmt)}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </Accordion>
+              );
+            })}
+        </Accordion>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
         {!now && (
           <>
             <div className="pb-2">
               <SpanishDateInfo />
             </div>
-
             <div className="pb-2">
               <Info
                 content={

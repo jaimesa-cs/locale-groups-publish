@@ -39,6 +39,8 @@ const useLocaleDate = ({ zone, fmt }: UseLocaleDateProps) => {
   }, []);
 
   return {
+    zone,
+    fmt,
     date,
     localeDateString,
     isDst,
