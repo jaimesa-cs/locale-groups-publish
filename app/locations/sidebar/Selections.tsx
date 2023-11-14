@@ -12,6 +12,7 @@ import {
   TextInput,
   TimePicker2,
   ToggleSwitch,
+  Tooltip,
   cbModal,
 } from "@contentstack/venus-components";
 import {
@@ -52,8 +53,6 @@ const Selections = ({}: SelectionsProps) => {
   });
   const [now, setNow] = React.useState<boolean>(true);
   const [withReferences, setWithReferences] = React.useState<boolean>(true);
-
-  const [logOnly, setLogOnly] = React.useState<boolean>(false);
 
   const [dateInfo, setDateInfo] = React.useState<DateInfo>({
     date: date.toFormat("yyyy/MM/dd"),
@@ -160,46 +159,41 @@ const Selections = ({}: SelectionsProps) => {
               );
             }
 
-            if (debugEnabled || logOnly) {
-              console.log(
-                "Country: ",
-                country.name,
-                ", Period: ",
-                `${period.dif}${period.hours}`,
-                "Selected (ISO)",
-                userSelectedScheduleDate.toISOString(),
-                "Actual (ISO):",
-                scheduledAt.toISOString()
-              );
-            }
+            debug(
+              "Country: ",
+              country.name,
+              ", Period: ",
+              `${period.dif}${period.hours}`,
+              "Selected (ISO)",
+              userSelectedScheduleDate.toISOString(),
+              "Actual (ISO):",
+              scheduledAt.toISOString()
+            );
+
             scheduledAtString = scheduledAt.toISOString();
           }
 
-          if (!logOnly) {
-            publishEntry(
-              entry.uid,
-              contentTypeUid,
-              entry._version,
-              entry.locale,
-              [country.locale],
-              [...e.map((e: IEnvironmentConfig) => e.uid)],
-              scheduledAtString,
-              withReferences,
-              false,
-              false
-            )
-              .then((response) => {
-                debug("Response", response);
-              })
-              .catch((error) => {
-                errors.push(error);
-              })
-              .finally(() => {
-                setPublishing(false);
-              });
-          } else {
-            setPublishing(false);
-          }
+          publishEntry(
+            entry.uid,
+            contentTypeUid,
+            entry._version,
+            entry.locale,
+            [country.locale],
+            [...e.map((e: IEnvironmentConfig) => e.uid)],
+            scheduledAtString,
+            withReferences,
+            false,
+            false
+          )
+            .then((response) => {
+              debug("Response", response);
+            })
+            .catch((error) => {
+              errors.push(error);
+            })
+            .finally(() => {
+              setPublishing(false);
+            });
         }
       }
 
@@ -220,7 +214,6 @@ const Selections = ({}: SelectionsProps) => {
     dateInfo.time,
     dateInfo.summerTime,
     now,
-    logOnly,
     publishEntry,
     withReferences,
   ]);
@@ -284,16 +277,6 @@ const Selections = ({}: SelectionsProps) => {
                     summerTime: !di.summerTime,
                   };
                 });
-              }}
-            />
-          </div>
-          <div className="pt-3 pl-5">
-            <ToggleSwitch
-              id="checked"
-              checked={logOnly}
-              label="Log Only"
-              onClick={() => {
-                setLogOnly((lo) => !lo);
               }}
             />
           </div>
@@ -371,10 +354,30 @@ const Selections = ({}: SelectionsProps) => {
                             className="p-2"
                             key={`country_${country.locale}`}
                           >
-                            <strong>{country.name}</strong>:{" "}
-                            {DateTime.fromISO(scheduledAtString, {
-                              zone: zone,
-                            }).toFormat(fmt)}
+                            <Tooltip
+                              content={
+                                <>
+                                  <strong>UTC: &nbsp;</strong>
+
+                                  {DateTime.fromISO(scheduledAtString, {
+                                    zone: zone,
+                                  })
+                                    .toJSDate()
+                                    .toUTCString()}
+                                </>
+                              }
+                              showArrow={true}
+                              position="right"
+                              variantType="dark"
+                              type="secondary"
+                            >
+                              <>
+                                <strong>{country.name}</strong>:{" "}
+                                {DateTime.fromISO(scheduledAtString, {
+                                  zone: zone,
+                                }).toFormat(fmt)}
+                              </>
+                            </Tooltip>
                           </div>
                         );
                       })}
