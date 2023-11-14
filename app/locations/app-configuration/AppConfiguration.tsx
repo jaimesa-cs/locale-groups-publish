@@ -11,7 +11,6 @@ import { showError, showSuccess } from "../../utils/notifications";
 import { CONFIGURATION_NAME } from "@/app/configuration/configuration";
 import CodeEditor from "@uiw/react-textarea-code-editor/esm/index";
 import { IAppConfiguration } from "../../components/sidebar/models/models";
-import { MarketplaceAppProvider } from "@/app/common/providers/MarketplaceAppProvider";
 import React from "react";
 import { TypeAppSdkConfigState } from "../../types";
 import { useAppSdk } from "../../hooks/useAppSdk";
@@ -110,89 +109,87 @@ const AppConfiguration = () => {
   const [loading, setLoading] = React.useState<boolean>(false);
   const [isValid, setIsValid] = React.useState<boolean>(true);
   return (
-    <MarketplaceAppProvider>
-      <div className="p-10 ">
-        <Accordion title={CONFIGURATION_NAME} renderExpanded noChevron>
-          <div className="app-config ">
-            <div className="app-config-container h-96">
-              <div className="app-component-content p-4">
-                <FieldLabel
-                  required
-                  htmlFor="advancedPublishingConfig"
-                  error={!isValid}
-                >
-                  {CONFIGURATION_NAME}
-                </FieldLabel>
+    <div className="p-10 ">
+      <Accordion title={CONFIGURATION_NAME} renderExpanded noChevron>
+        <div className="app-config ">
+          <div className="app-config-container h-96">
+            <div className="app-component-content p-4">
+              <FieldLabel
+                required
+                htmlFor="advancedPublishingConfig"
+                error={!isValid}
+              >
+                {CONFIGURATION_NAME}
+              </FieldLabel>
 
-                {loading ? (
-                  <>Loading...</>
-                ) : (
-                  <>
-                    {!isValid && (
-                      <InstructionText style={{ color: "red" }}>
-                        Invalid JSON
-                      </InstructionText>
-                    )}
-                    <div
-                      style={{
-                        border: !isValid ? "1px solid red" : "",
-                      }}
-                      className="overflow-auto"
-                    >
-                      <CodeEditor
-                        key="advancedPublishingConfig"
-                        value={
-                          state.appSdkInitialized
-                            ? JSON.stringify(state.appConfiguration, null, 2)
-                            : "Loading..."
+              {loading ? (
+                <>Loading...</>
+              ) : (
+                <>
+                  {!isValid && (
+                    <InstructionText style={{ color: "red" }}>
+                      Invalid JSON
+                    </InstructionText>
+                  )}
+                  <div
+                    style={{
+                      border: !isValid ? "1px solid red" : "",
+                    }}
+                    className="overflow-auto"
+                  >
+                    <CodeEditor
+                      key="advancedPublishingConfig"
+                      value={
+                        state.appSdkInitialized
+                          ? JSON.stringify(state.appConfiguration, null, 2)
+                          : "Loading..."
+                      }
+                      language="json"
+                      placeholder="Please enter JSON content."
+                      onChange={(e: any) => {
+                        const valid = isValidJson(e.target.value);
+                        setIsValid(valid);
+                        if (valid) {
+                          setState((s) => {
+                            return {
+                              ...s,
+                              appConfiguration: JSON.parse(e.target.value),
+                            };
+                          });
                         }
-                        language="json"
-                        placeholder="Please enter JSON content."
-                        onChange={(e: any) => {
-                          const valid = isValidJson(e.target.value);
-                          setIsValid(valid);
-                          if (valid) {
-                            setState((s) => {
-                              return {
-                                ...s,
-                                appConfiguration: JSON.parse(e.target.value),
-                              };
-                            });
-                          }
-                        }}
-                        padding={15}
-                        style={{
-                          fontSize: 12,
-                          width: "100%",
+                      }}
+                      padding={15}
+                      style={{
+                        fontSize: 12,
+                        width: "100%",
 
-                          backgroundColor: "#f5f5f5",
-                          fontFamily:
-                            "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-                        }}
-                      />
-                    </div>
-                  </>
-                )}
-                <br />
-              </div>
+                        backgroundColor: "#f5f5f5",
+                        fontFamily:
+                          "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+              <br />
+            </div>
 
-              <div className="flex justify-center pb-20">
-                <Button
-                  isLoading={loading}
-                  buttonType="secondary"
-                  disabled={!isValid}
-                  onClick={() => {
-                    updateConfig();
-                  }}
-                >
-                  Update Configuration
-                </Button>
-              </div>
+            <div className="flex justify-center pb-20">
+              <Button
+                isLoading={loading}
+                buttonType="secondary"
+                disabled={!isValid}
+                onClick={() => {
+                  updateConfig();
+                }}
+              >
+                Update Configuration
+              </Button>
             </div>
           </div>
-        </Accordion>
-      </div>
-    </MarketplaceAppProvider>
+        </div>
+      </Accordion>
+    </div>
   );
 };
 
