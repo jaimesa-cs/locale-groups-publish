@@ -400,7 +400,7 @@ export const useCsOAuthApi = (): SdkResult => {
       const headers: KeyValueObj = {
         ...options?.headers,
       };
-      if (withReferences) {
+      if (withReferences && process.env.NEXT_PUBLIC_ENABLE_NRP === "true") {
         headers["cs-api-version"] = "3.2";
       }
       const data: IPublishInstruction = {

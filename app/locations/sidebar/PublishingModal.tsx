@@ -18,7 +18,7 @@ export const PublishingModal = ({ closeModal }: PublishingModalProps) => {
           title={`Publishing by Country Groups`}
           closeModal={closeModal}
         />
-        <div className="h-[65vh] w-[50vw] p-4 overflow-y-scroll">
+        <div className="h-[75vh] w-[50vw] p-4 overflow-y-scroll">
           <Selections closeModal={closeModal} />
         </div>
       </div>

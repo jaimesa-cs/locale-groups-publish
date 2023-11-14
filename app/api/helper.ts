@@ -58,6 +58,11 @@ export const prepareHeaders = (headers: Headers) => {
   newHeaders["api_key"] = headers.get("cs-api-key") || "";
   newHeaders["branch"] = headers.get("branch") || "";
   newHeaders["region"] = headers.get("region") || "";
+  //TODO: REVIEW WHETHER NESTED REFERENCE PUBLISHING IS NEEDED
+  const apiVersion = headers.get("cs-api-version") || "";
+  if (apiVersion && apiVersion !== "") {
+    newHeaders["api_version"] = apiVersion;
+  }
 
   const bearer = headers.get("authorization")?.replace("Bearer ", "");
 
